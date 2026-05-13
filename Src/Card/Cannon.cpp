@@ -10,9 +10,28 @@
 #include "Cannon.h"
 #pragma message(">>> Included Stage.h from: " __FILE__)
 Cannon::Cannon(std::shared_ptr<Player> player, std::weak_ptr<EnemyGolem> enemy)
-	: CannonBase(0, 0),player_(player),enemy_(enemy)
+	: CannonBase(0, 0), player_(player), enemy_(enemy)
 {
 	size_ = 0.8f;
+
+	standModelId_ = -1;
+	standScl_ = { 0.0f,0.0f,0.0f };
+	standRot_ = { 0.0f,0.0f,0.0f };
+	standPos_ = { 0.0f,0.0f,0.0f };
+
+	barrelModelId_ = -1;
+	barrelScl_ = { 0.0f,0.0f,0.0f };
+	barrelRot_ = { 0.0f,0.0f,0.0f };
+	barrelPos_ = { 0.0f,0.0f,0.0f };
+	barrelLocalPos_ = { 0.0f,0.0f,0.0f };
+
+	shotModelId_ = -1;
+
+	stepShotDelay_ = 0.0f;
+
+	blastEffect_ = -1;
+
+	stepAlive_ = 0.0f;
 }
 
 Cannon::~Cannon(void)
@@ -23,9 +42,12 @@ bool Cannon::Init(void)
 {
 	switch (rarity_)
 	{
-	case CARD_RARITY::BRONZE: DamageRate = 1.0f; break;
-	case CARD_RARITY::SILVER: DamageRate = 1.5f; break;
-	case CARD_RARITY::GOLD:   DamageRate = 2.0f; break;
+	case CARD_RARITY::BRONZE: DamageRate = BRONZE_RATE;
+		break;
+	case CARD_RARITY::SILVER: DamageRate = SILVER_RATE;
+		break;
+	case CARD_RARITY::GOLD:   DamageRate = GOLD_RATE;
+		break;
 	}
 
 	size_ *= DamageRate;
@@ -44,7 +66,7 @@ bool Cannon::Init(void)
 		VECTOR forward = player_->GetTransform().GetForward();
 
 		//プレイヤーの位置を基準に、大砲を前にずらす距離（調整可）
-		float offsetDist = 120.0f;
+		float offsetDist = OFFSET_DIST;
 
 		//位置 = プレイヤーの位置 + Forward × 距離
 		standPos_ = VAdd(
@@ -53,7 +75,6 @@ bool Cannon::Init(void)
 		);
 	}
 	standRot_ = { 0.0f,0.0f,0.0f };
-	//standPos_ = { 0.0f,10.0f,-200.0f };
 
 
 #pragma endregion
@@ -66,13 +87,8 @@ bool Cannon::Init(void)
 	//砲身の角度
 	barrelRot_ = { -0.5f,0.0f,0.0f };
 	barrelRot_.y = player_->GetRot().y;
-	//barrelRot_ = standRot_;
 	//砲身の座標
-	//barrelPos_ = { 0.0f,110.0f,-200.0f };
-	barrelLocalPos_ = { 0.0f,100.0f *DamageRate,0.0f };
-	/*barrelPos_.x = standPos_.x + barrelLocalPos_.x;
-	barrelPos_.y = standPos_.y + barrelLocalPos_.y;
-	barrelPos_.z = standPos_.z + barrelLocalPos_.z;*/
+	barrelLocalPos_ = { 0.0f,BARREL_HEIGHT * DamageRate,0.0f };
 
 	// VECTOR同士の加算 VAdd関数
 	barrelPos_ = VAdd(standPos_, barrelLocalPos_);
@@ -88,7 +104,7 @@ bool Cannon::Init(void)
 
 	// 爆発エフェクト読み込み
 	blastEffect_ = ResourceManager::GetInstance().Load(
-			ResourceManager::SRC::CANNON_BLAST).handleId_;
+		ResourceManager::SRC::CANNON_BLAST).handleId_;
 
 	//初期設定をモデルに反映
 	Update();
@@ -101,21 +117,17 @@ void Cannon::Update(void)
 	ProcessRot();
 	ProcessShot();
 
-	//// --- 弾の更新 ---
-	//for (auto& shot : shots_)
-	//{
-	//	if (shot->IsAlive())
-	//	{
-	//		shot->Update();
-	//	}
-	//}
+	//UpdateShots();   //SceneManagerにある
+	UpdateLifeTime();
+	UpdateTransform();
+
 	for (auto it = shots_.begin(); it != shots_.end(); )
 	{
 		(*it)->Update();
 
 		if (!(*it)->IsAlive())
 		{
-			delete* it;                 // ★ 必須
+			//delete* it;           
 			it = shots_.erase(it);
 		}
 		else
@@ -124,40 +136,11 @@ void Cannon::Update(void)
 		}
 	}
 
-	// 生存時間をカウント ---
-	stepAlive_ += 1.0f / DEFAULT_FPS; // 毎フレーム加算（60FPS想定）
-
-	if (stepAlive_ >= timeAlive_)
-	{
-		isAlive_ = false; // CardManagerに破棄してもらう
-	}
-#pragma region 砲台
-	// ３Ｄモデルの大きさを設定(引数は、x, y, zの倍率)
-	MV1SetScale(standModelId_, standScl_);
-
-	// ３Ｄモデルの向き(引数は、x, y, zの回転量。単位はラジアン。)
-	MV1SetRotationXYZ(standModelId_, standRot_);
-
-	// ３Ｄモデルの位置(引数は、３Ｄ座標)
-	MV1SetPosition(standModelId_, standPos_);
-#pragma endregion
-#pragma region 砲身
-	// ３Ｄモデルの大きさを設定(引数は、x, y, zの倍率)
-	MV1SetScale(barrelModelId_, barrelScl_);
-
-	// ３Ｄモデルの向き(引数は、x, y, zの回転量。単位はラジアン。)
-	MV1SetRotationXYZ(barrelModelId_, barrelRot_);
-
-	// ３Ｄモデルの位置(引数は、３Ｄ座標)
-	MV1SetPosition(barrelModelId_, barrelPos_);
-
-	ProcessRot();
-#pragma endregion
 }
 
 void Cannon::Draw(void)
 {
-	
+
 	// 砲台のモデル描画
 	MV1DrawModel(standModelId_);
 
@@ -174,21 +157,12 @@ void Cannon::Draw(void)
 
 bool Cannon::Release(void)
 {
-	CannonBase::Release();
-
-	MV1DeleteModel(standModelId_);
-	MV1DeleteModel(barrelModelId_);
-	MV1DeleteModel(shotModelId_);
 
 	shots_.clear();   // Update 側で delete 済み
 
 	return true;
 }
 
-std::vector<CannonBase*> Cannon::GetShots(void)
-{
-	return shots_;
-}
 
 void Cannon::ProcessCard()
 {
@@ -202,34 +176,6 @@ void Cannon::ProcessRot(void)
 	//回転量
 	float rotPowRad = 2.0f * DX_PI_F / 180.0f;
 
-	////横回転
-	//if (ins.IsNew(KEY_INPUT_RIGHT))
-	//{
-	//	standRot_.y += rotPowRad;
-	//	barrelRot_.y = standRot_.y;
-	//}
-	//if (ins.IsNew(KEY_INPUT_LEFT))
-	//{
-	//	standRot_.y -= rotPowRad;
-	//	barrelRot_.y = standRot_.y;
-	//}
-
-	////縦回転
-	//if (ins.IsNew(KEY_INPUT_UP))
-	//{
-	//	if (MAX_ANGLE_X > barrelRot_.x)
-	//	{
-	//		barrelRot_.x += rotPowRad;
-	//	}
-	//}
-
-	//if (ins.IsNew(KEY_INPUT_DOWN))
-	//{
-	//	if (MIN_ANGLE_X < barrelRot_.x)
-	//	{
-	//		barrelRot_.x -= rotPowRad;
-	//	}
-	//}
 }
 
 void Cannon::ProcessShot(void)
@@ -250,7 +196,7 @@ void Cannon::ProcessShot(void)
 		matRot = MMult(matRot, MGetRotZ(barrelRot_.z));
 
 		VECTOR dir = VNorm(VTransform({ 0.0f, 0.0f, 1.0f }, matRot));
-		VECTOR localPosRot = VTransform({ 0.0f, 25.0f * DamageRate, 30.0f }, matRot);
+		VECTOR localPosRot = VTransform({ 0.0f, SHOT_OFFSET_Y * DamageRate, SHOT_OFFSET_Z }, matRot);
 		VECTOR pos = VAdd(barrelPos_, localPosRot);
 
 		shot->CreateShot(pos, dir);
@@ -279,33 +225,58 @@ void Cannon::ProcessShot(void)
 		}
 
 		stepShotDelay_ = SHOT_DELAY;
-		Fired_ = true;   // ★ 撃った瞬間だけ true
+		//撃った瞬間だけ true
+		Fired_ = true;
 	}
 
 	if (stepShotDelay_ > 0.0f)
 	{
 		stepShotDelay_ -= 1.0f / DEFAULT_FPS;
 	}
+	else
+	{
+		Fired_ = false;
+	}
+}
+
+void Cannon::UpdateLifeTime()
+{
+	stepAlive_ += 1.0f / DEFAULT_FPS;
+
+	if (stepAlive_ >= timeAlive_)
+	{
+		isAlive_ = false;
+	}
+}
+
+void Cannon::UpdateTransform()
+{
+	// 砲台
+	MV1SetScale(standModelId_, standScl_);
+	MV1SetRotationXYZ(standModelId_, standRot_);
+	MV1SetPosition(standModelId_, standPos_);
+
+	// 砲身
+	MV1SetScale(barrelModelId_, barrelScl_);
+	MV1SetRotationXYZ(barrelModelId_, barrelRot_);
+	MV1SetPosition(barrelModelId_, barrelPos_);
 }
 
 CannonBase* Cannon::GetValidShot(void)
 {
-	size_t size = shots_.size();
-	for (int i = 0; i < size; i++)
+	for (auto& shot : shots_)
 	{
-		if (!shots_[i]->IsAlive())
+		if (!shot->IsAlive())
 		{
-			return shots_[i];
+			return shot.get();
 		}
 	}
-	CannonBase* shot = new CannonBase(shotModelId_, blastEffect_);
 
+	auto shot = std::make_unique<CannonBase>(shotModelId_, blastEffect_);
 	shot->SetPlayer(player_);
 	shot->SetEnemy(enemy_);
-
 	shot->SetRarity(rarity_);
 
-	shots_.push_back(shot);
-
-	return shot;
+	shots_.push_back(std::move(shot));
+	return shots_.back().get();
 }

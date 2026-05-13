@@ -5,12 +5,29 @@
 #include "../Object/Player.h"
 
 class CardBase;
+class Cannon;
 class Shot;
 
 class CardManager
 {
 public:
+	// UI座標
+	static constexpr int CARD_BASE_X = 10;
+	static constexpr int CARD_BASE_Y = 550;
+	static constexpr int CARD_INTERVAL = 150;
 
+	static constexpr int CARD_STRING_X = 178;
+	static constexpr int CARD_STRING_Y = 510;
+
+
+	// キー表示位置
+	static constexpr int KEY_TEXT_Y = 510;
+
+	// カード描画倍率
+	static constexpr float CARD_DRAW_SCALE = 0.12f;
+
+	// アイコン描画倍率
+	static constexpr float ICON_DRAW_SCALE = 0.10f;
 	//モデルのファイル名
 	std::string modelFileName_;
 
@@ -60,16 +77,22 @@ public:
 	void UseCard(EFFECT effectId);
 
 protected:
-	
+
 	// 静的インスタンス
 	static CardManager* instance_;
+	// 単発カード（Healなど）
 	std::shared_ptr<CardBase> base_;
+
+	// 射撃（弾を管理）
+	std::shared_ptr<Shot> shot_;
+
+	// 砲撃
+	std::shared_ptr<Cannon> cannon_;
 
 	//プレイヤー
 	std::shared_ptr<Player> player_;
-	
+
 	std::shared_ptr<EnemyGolem> enemy_;
-	//std::weak_ptr<EnemyGolem> enemy_;
 
 	int cardImgBr_;
 	int cardImgSl_;
@@ -113,7 +136,7 @@ protected:
 	};
 
 	std::vector<CardUI> cardList_;
-	void LoadIcons(); 
+	void LoadIcons();
 	void DrawCardIcon();
 };
 

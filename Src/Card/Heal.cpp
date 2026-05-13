@@ -42,11 +42,11 @@ void Heal::ProcessCard()
 	float healRate = 1.0f;
 	switch (rarity_)
 	{
-	case CARD_RARITY::BRONZE: healRate = 1.0f; break;
-	case CARD_RARITY::SILVER: healRate = 1.5f; break;
-	case CARD_RARITY::GOLD:   healRate = 2.0f; break;
+	case CARD_RARITY::BRONZE: healRate = BRONZE_RATE; break;
+	case CARD_RARITY::SILVER: healRate = SILVER_RATE; break;
+	case CARD_RARITY::GOLD:   healRate = GOLD_RATE; break;
 	}
-
+	
 	int healAmount = static_cast<int>(Heal_ * healRate);
 
 	player_->Heal(healAmount);

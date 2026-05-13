@@ -8,6 +8,14 @@ class CardBase
 {
 public:
 
+	//未ロード画像ID
+	static constexpr int INVALID_IMAGE_ID = -1;
+
+	//レア度倍率
+	static constexpr float BRONZE_RATE = 1.0f;
+	static constexpr float SILVER_RATE = 1.5f;
+	static constexpr float GOLD_RATE = 2.0f;
+
 	enum class CARD_RARITY
 	{
 		NONE,
@@ -19,7 +27,7 @@ public:
 	//コンストラクタ
 	CardBase(void);
 	//デストラクタ
-	~CardBase(void);
+	virtual ~CardBase(void);
 
 	//初期化
 	virtual bool Init(void);
@@ -37,7 +45,10 @@ public:
 	// 自機のカードを発動
 	virtual void CreateCard(void);
 
-	bool IsAlive()const;
+	// 共通起動関数（重要）
+	void Activate(CARD_RARITY rarity);
+
+	virtual bool IsAlive()const;
 
 	// レア度を設定
 	void SetRarity(CARD_RARITY rarity);
@@ -67,5 +78,5 @@ protected:
 
 	bool isAlive_;
 
-	int iconImg_ = -1;
+	int iconImg_ = INVALID_IMAGE_ID;
 };

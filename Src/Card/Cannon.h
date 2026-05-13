@@ -11,6 +11,18 @@ class Cannon :
 {
 public:
 
+	//プレイヤーから前に出す距離
+	static constexpr float OFFSET_DIST = 120.0f;
+
+	//砲身の高さ
+	static constexpr float BARREL_HEIGHT = 100.0f;
+
+	//弾の発射位置（ローカルY）
+	static constexpr float SHOT_OFFSET_Y = 25.0f;
+
+	//弾の発射位置（ローカルZ）
+	static constexpr float SHOT_OFFSET_Z = 30.0f;
+
 	// 砲身のX回転制限(最大)
 	static constexpr float MAX_ANGLE_X
 		= 15.0f * DX_PI_F / 180.0f;
@@ -38,8 +50,6 @@ public:
 	void Draw(void) override;
 	bool Release(void) override;
 
-	//弾の取得
-	std::vector<CannonBase*> GetShots(void);
 	//効果の発動
 	void ProcessCard() override;
 private:
@@ -71,7 +81,7 @@ private:
 #pragma endregion
 
 	// ショット(ポインタ)
-	std::vector<CannonBase*> shots_;
+	std::vector<std::unique_ptr<CannonBase>> shots_;
 
 	//プレイヤー
 	std::shared_ptr<Player> player_;
@@ -88,6 +98,13 @@ private:
 
 	// 発射操作
 	void ProcessShot(void);
+
+	//弾更新
+	//void UpdateShots();  //SceneManagerにある
+	//生存時間
+	void UpdateLifeTime();
+	//モデル更新
+	void UpdateTransform();
 
 	// 有効な弾を取得する
 	CannonBase* GetValidShot(void);

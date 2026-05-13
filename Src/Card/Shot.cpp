@@ -30,45 +30,44 @@ void Shot::Update()
 }
 
 void Shot::SetParam()
-{	
+{
 	// --- ƒŒƒA“x‚²‚Æ‚Ì•â³ ---
 	float rate = 1.0f;
 	switch (rarity_)
 	{
 	case CARD_RARITY::BRONZE:
-		rate = 1.0f;
+		rate = BRONZE_RATE;
 		break;
 	case CARD_RARITY::SILVER:
-		rate = 2.0f;
+		rate = SILVER_RATE;
 		break;
 	case CARD_RARITY::GOLD:
-		rate = 3.0f;
+		rate = GOLD_RATE;
 		break;
 	default:
-		rate = 1.0f;
+		rate = BRONZE_RATE;
 		break;
 	}
-	// ’e‚Ì‘¬“x
-	speed_ = 13.0f * rate;
-	// ¶‘¶ŽžŠÔ
-	timeAlive_ = 3.0f;
-	//Õ“Ë—p‹…‘Ì”¼Œa
-	//collisionRadius_ = 15.0f;
-	scale = 0.2 * rate;
-	Damage_ = 15 / rate;
 
-	if(player_)
+	// ’e‚Ì‘¬“x
+	speed_ = DEFAULT_SPEED * rate;
+	// ¶‘¶ŽžŠÔ
+	timeAlive_ = DEFAULT_ALIVE_TIME;
+	//Õ“Ë—p‹…‘Ì”¼Œa
+	scale = DEFAULT_SCALE * rate;
+	Damage_ = DEFAULT_DAMAGE / rate;
+
+	if (player_)
 	{
-		player_->Damage(static_cast<int>(Damage_ * rate) / 2);
+		player_->Damage(static_cast<int>(Damage_ * rate) * PLAYER_DAMAGE_RATE);
 	}
-	
-	//printfDx("SetParam called! rate=%.2f, speed=%.2f, Damage=%.2f\n",rate ,speed_, Damage_);
+
 }
 
 void Shot::ProcessCard()
 {
 	if (!player_) return;
-	
+
 	SoundManager::SOUND_ID se = SoundManager::SOUND_ID::SHOT_S;
 
 	// ƒŒƒA“x‚²‚Æ‚Ì”{—¦

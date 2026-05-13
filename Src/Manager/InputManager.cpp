@@ -40,7 +40,7 @@ void InputManager::Init(void)
 	InputManager::GetInstance().Add(KEY_INPUT_S);
 	InputManager::GetInstance().Add(KEY_INPUT_D);
 
-	
+
 	//デバッグ
 	InputManager::GetInstance().Add(KEY_INPUT_E); //体力増やす
 	InputManager::GetInstance().Add(KEY_INPUT_Q); //体力減らす
@@ -49,8 +49,10 @@ void InputManager::Init(void)
 	InputManager::GetInstance().Add(KEY_INPUT_V); //レア度変更
 	InputManager::GetInstance().Add(KEY_INPUT_Z); //大砲による砲撃
 
+	InputManager::GetInstance().Add(KEY_INPUT_LSHIFT);
 	InputManager::GetInstance().Add(KEY_INPUT_RSHIFT);
 
+	InputManager::GetInstance().Add(KEY_INPUT_BACK);
 	InputManager::GetInstance().Add(KEY_INPUT_BACKSLASH);
 
 	InputManager::MouseInfo info;
@@ -240,7 +242,7 @@ void InputManager::SetJPadInState(JOYPAD_NO jpNo)
 
 		stateNow.IsOld[i] = stateNow.IsNew[i];
 		//stateNow.IsNew[i] = stateNow.ButtonsNew[i] == 128 || stateNow.ButtonsNew[i] == 255;
-		stateNow.IsNew[i] = stateNow.ButtonsNew[i] > 0;
+		stateNow.IsNew[i] = stateNow.ButtonsNew[i] > ANALOG_INPUT_MIN;
 
 		stateNow.IsTrgDown[i] = stateNow.IsNew[i] && !stateNow.IsOld[i];
 		stateNow.IsTrgUp[i] = !stateNow.IsNew[i] && stateNow.IsOld[i];
@@ -252,7 +254,6 @@ void InputManager::SetJPadInState(JOYPAD_NO jpNo)
 		stateNow.AKeyRY = stateNew.AKeyRY;
 
 	}
-
 }
 
 InputManager::JOYPAD_IN_STATE InputManager::GetJPadInputState(JOYPAD_NO no)
@@ -261,7 +262,7 @@ InputManager::JOYPAD_IN_STATE InputManager::GetJPadInputState(JOYPAD_NO no)
 	JOYPAD_IN_STATE ret = JOYPAD_IN_STATE();
 
 	auto type = GetJPadType(no);
-	
+
 	switch (type)
 	{
 	case InputManager::JOYPAD_TYPE::OTHER:
@@ -269,7 +270,7 @@ InputManager::JOYPAD_IN_STATE InputManager::GetJPadInputState(JOYPAD_NO no)
 	case InputManager::JOYPAD_TYPE::XBOX_360:
 	{
 	}
-		break;
+	break;
 	case InputManager::JOYPAD_TYPE::XBOX_ONE:
 	{
 
@@ -283,16 +284,16 @@ InputManager::JOYPAD_IN_STATE InputManager::GetJPadInputState(JOYPAD_NO no)
 		//   A
 
 		idx = static_cast<int>(JOYPAD_BTN::TOP);
-		ret.ButtonsNew[idx] = d.Buttons[3];// Y
+		ret.ButtonsNew[idx] = d.Buttons[XINPUT_BTN_Y];// Y
 
 		idx = static_cast<int>(JOYPAD_BTN::LEFT);
-		ret.ButtonsNew[idx] = d.Buttons[2];// X
+		ret.ButtonsNew[idx] = d.Buttons[XINPUT_BTN_X];// X
 
 		idx = static_cast<int>(JOYPAD_BTN::RIGHT);
-		ret.ButtonsNew[idx] = d.Buttons[1];// B
+		ret.ButtonsNew[idx] = d.Buttons[XINPUT_BTN_B];// B
 
 		idx = static_cast<int>(JOYPAD_BTN::DOWN);
-		ret.ButtonsNew[idx] = d.Buttons[0];// A
+		ret.ButtonsNew[idx] = d.Buttons[XINPUT_BTN_A];// A
 
 		idx = static_cast<int>(JOYPAD_BTN::R_TRIGGER);
 		ret.ButtonsNew[idx] = x.RightTrigger;// R_TRIGGER
@@ -303,18 +304,18 @@ InputManager::JOYPAD_IN_STATE InputManager::GetJPadInputState(JOYPAD_NO no)
 		// 左スティック
 		ret.AKeyLX = d.X;
 		ret.AKeyLY = d.Y;
-		
+
 		// 右スティック
 		ret.AKeyRX = d.Rx;
 		ret.AKeyRY = d.Ry;
 
 	}
-		break;
+	break;
 	case InputManager::JOYPAD_TYPE::DUAL_SHOCK_4:
 		break;
 	case InputManager::JOYPAD_TYPE::DUAL_SENSE:
 	{
-		
+
 		auto d = GetJPadDInputState(no);
 		int idx;
 
@@ -323,27 +324,27 @@ InputManager::JOYPAD_IN_STATE InputManager::GetJPadInputState(JOYPAD_NO no)
 		//   ×
 
 		idx = static_cast<int>(JOYPAD_BTN::TOP);
-		ret.ButtonsNew[idx] = d.Buttons[3];// △
+		ret.ButtonsNew[idx] = d.Buttons[DUALSENSE_BTN_TRIANGLE];// △
 
 		idx = static_cast<int>(JOYPAD_BTN::LEFT);
-		ret.ButtonsNew[idx] = d.Buttons[0];// □
+		ret.ButtonsNew[idx] = d.Buttons[DUALSENSE_BTN_SQUARE];// □
 
 		idx = static_cast<int>(JOYPAD_BTN::RIGHT);
-		ret.ButtonsNew[idx] = d.Buttons[2];// 〇
+		ret.ButtonsNew[idx] = d.Buttons[DUALSENSE_BTN_CIRCLE];// 〇
 
 		idx = static_cast<int>(JOYPAD_BTN::DOWN);
-		ret.ButtonsNew[idx] = d.Buttons[1];// ×
+		ret.ButtonsNew[idx] = d.Buttons[DUALSENSE_BTN_CROSS];// ×
 
 		// 左スティック
 		ret.AKeyLX = d.X;
 		ret.AKeyLY = d.Y;
-		
+
 		// 右スティック
 		ret.AKeyRX = d.Z;
 		ret.AKeyRY = d.Rz;
 
 	}
-		break;
+	break;
 	case InputManager::JOYPAD_TYPE::SWITCH_JOY_CON_L:
 		break;
 	case InputManager::JOYPAD_TYPE::SWITCH_JOY_CON_R:

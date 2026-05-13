@@ -4,6 +4,9 @@
 
 CardBase::CardBase(void)
 {
+	rarity_ = CARD_RARITY::NONE;
+
+	dir_ = { 0.0f,0.0f,0.0f };
 	Damage_ = 0;
 	Heal_ = 0;
 	speed_ = 0.0f;
@@ -17,7 +20,7 @@ CardBase::~CardBase(void)
 bool CardBase::Init(void)
 {
 	SetParam();
-    return true;
+	return true;
 }
 
 void CardBase::Update(void)
@@ -30,7 +33,7 @@ void CardBase::Draw(void)
 
 bool CardBase::Release(void)
 {
-    return true;
+	return true;
 }
 
 void CardBase::SetParam()
@@ -45,6 +48,13 @@ void CardBase::CreateCard(void)
 {
 }
 
+void CardBase::Activate(CARD_RARITY rarity)
+{
+	SetRarity(rarity);
+	Init();
+	ProcessCard();
+}
+
 bool CardBase::IsAlive() const
 {
 	return isAlive_;
@@ -52,7 +62,7 @@ bool CardBase::IsAlive() const
 
 void CardBase::SetRarity(CARD_RARITY rarity)
 {
-	 rarity_ = rarity; 
+	rarity_ = rarity;
 }
 
 void CardBase::SetEnemy(std::weak_ptr<EnemyGolem> enemy)

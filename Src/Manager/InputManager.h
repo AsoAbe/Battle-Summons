@@ -7,6 +7,17 @@ class InputManager
 {
 
 public:
+	// マウスボタン数
+	static constexpr int MOUSE_BUTTON_NUM = 2;
+
+	// パッド最大数
+	static constexpr int PAD_NUM = 5;
+
+	// アナログスティック最小入力値
+	static constexpr int ANALOG_INPUT_MIN = 0;
+
+	// アナログスティック最大入力値
+	static constexpr int ANALOG_INPUT_MAX = 255;
 
 	// アナログキーの最大値
 	static constexpr float AKEY_VAL_MAX = 1000.0f;
@@ -51,6 +62,18 @@ public:
 		L_TRIGGER,
 		MAX
 	};
+
+	// XInput ボタン番号
+	static constexpr int XINPUT_BTN_A = 0;
+	static constexpr int XINPUT_BTN_B = 1;
+	static constexpr int XINPUT_BTN_X = 2;
+	static constexpr int XINPUT_BTN_Y = 3;
+
+	// DualSense ボタン番号
+	static constexpr int DUALSENSE_BTN_SQUARE = 0;
+	static constexpr int DUALSENSE_BTN_CROSS = 1;
+	static constexpr int DUALSENSE_BTN_CIRCLE = 2;
+	static constexpr int DUALSENSE_BTN_TRIANGLE = 3;
 
 	// ゲームコントローラーの入力情報
 	struct JOYPAD_IN_STATE
@@ -164,7 +187,7 @@ private:
 
 	// マウスカーソルの位置
 	Vector2 mousePos_;
-	
+
 	// マウスボタンの入力状態
 	int mouseInput_;
 

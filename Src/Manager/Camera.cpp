@@ -49,8 +49,8 @@ void Camera::SetBeforeDraw(void)
 
 	// ƒJƒƒ‰‚ÌÝ’è(ˆÊ’u‚Æ’Ž‹“_‚É‚æ‚é§Œä)
 	SetCameraPositionAndTargetAndUpVec(
-		pos_, 
-		targetPos_, 
+		pos_,
+		targetPos_,
 		cameraUp_
 	);
 
@@ -171,24 +171,24 @@ void Camera::ProcessRot(void)
 
 	auto& ins = InputManager::GetInstance();
 
-	float movePow = 5.0f;
+	float movePow = 3.0f;
 
 	// ƒJƒƒ‰‰ñ“]
 	if (ins.IsNew(KEY_INPUT_RIGHT))
 	{
 		// ‰E‰ñ“]
-		angles_.y += AsoUtility::Deg2RadF(2.0f);
+		angles_.y += AsoUtility::Deg2RadF(movePow);
 	}
 	if (ins.IsNew(KEY_INPUT_LEFT))
 	{
 		// ¶‰ñ“]
-		angles_.y += AsoUtility::Deg2RadF(-2.0f);
+		angles_.y += AsoUtility::Deg2RadF(-movePow);
 	}
 
 	// ã‰ñ“]
 	if (ins.IsNew(KEY_INPUT_UP))
 	{
-		angles_.x += AsoUtility::Deg2RadF(2.0f);
+		angles_.x += AsoUtility::Deg2RadF(movePow);
 		if (angles_.x > LIMIT_X_UP_RAD)
 		{
 			angles_.x = LIMIT_X_UP_RAD;
@@ -198,7 +198,7 @@ void Camera::ProcessRot(void)
 	// ‰º‰ñ“]
 	if (ins.IsNew(KEY_INPUT_DOWN))
 	{
-		angles_.x += AsoUtility::Deg2RadF(-2.0f);
+		angles_.x += AsoUtility::Deg2RadF(-movePow);
 		if (angles_.x < -LIMIT_X_DW_RAD)
 		{
 			angles_.x = -LIMIT_X_DW_RAD;

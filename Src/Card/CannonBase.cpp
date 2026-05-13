@@ -13,20 +13,43 @@
 //爆発の判定を相手の半径を考慮、試していない
 
 CannonBase::CannonBase(int baseModelId, int blastEffect)
-	:blastDuration_(0.4f)
+	: blastDuration_(BLAST_DURATION)
 {
 	baseModelId_ = baseModelId;
+
+	modelId_ = -1;
+
+	dir_ = { 0.0f,0.0f,0.0f };
+	scl_ = { 1.0f,1.0f,1.0f };
+	rot_ = { 0.0f,0.0f,0.0f };
+	pos_ = { 0.0f,0.0f,0.0f };
+
+	speed_ = 0.0f;
+	radius_ = 0.0f;
+	size_ = 1.0f;
+	gravityPow_ = 0.0f;
+
 	blastEffectHandle_ = blastEffect;
 	blastEffectPlayId_ = -1;
-	blastRadius_ = 200.0f;   // 爆風の範囲
-	Damage_ = 30;
+
+	blastTimer_ = 0.0f;
+	blastRadius_ = DEFAULT_BLAST_RADIUS;
+
+	Damage_ = DEFAULT_DAMAGE;
+
 	hasDealtDamage_ = false;
 
-	Fired_ = false;
-	transform_ = Transform{};
+	DamageRate = 1.0f;
 
-	prevPos_ = VGet(0.0f, 0.0f, 0.0f);
-	//bulletRadius_ = 20.0f;    // 弾の半径
+	state_ = STATE::NONE;
+
+	Fired_ = false;
+
+	prevPos_ = { 0.0f,0.0f,0.0f };
+
+	bulletRadius_ = DEFAULT_BULLET_RADIUS;
+
+	transform_ = Transform{};
 }
 
 CannonBase::~CannonBase(void)
@@ -48,16 +71,19 @@ void CannonBase::CreateShot(VECTOR pos, VECTOR dir)
 {
 	switch (rarity_)
 	{
-	case CARD_RARITY::BRONZE: DamageRate = 1.0f; break;
-	case CARD_RARITY::SILVER: DamageRate = 1.5f; break;
-	case CARD_RARITY::GOLD:   DamageRate = 2.0f; break;
+	case CARD_RARITY::BRONZE: DamageRate = BRONZE_RATE;
+		break;
+	case CARD_RARITY::SILVER: DamageRate = SILVER_RATE;
+		break;
+	case CARD_RARITY::GOLD:   DamageRate = GOLD_RATE;
+		break;
 	}
 	// 使用メモリ容量と読み込み時間の削減のため
 	// モデルデータをいくつもメモリ上に存在させない
 	modelId_ = MV1DuplicateModel(baseModelId_);
 
 	// 弾の大きさを設定
-	scl_ = { 1.8f* DamageRate, 1.8f* DamageRate, 1.8f* DamageRate };
+	scl_ = { MODEL_SCALE * DamageRate, MODEL_SCALE * DamageRate, MODEL_SCALE * DamageRate };
 
 	// 弾の角度を設定
 	rot_ = { 0.0f, 0.0f, 0.0f };
@@ -69,7 +95,7 @@ void CannonBase::CreateShot(VECTOR pos, VECTOR dir)
 	dir_ = dir;
 
 	// 弾の速度
-	speed_ = 10.0f;
+	speed_ = DEFAULT_SPEED;
 
 	// 弾の生存判定
 	isAlive_ = true;
@@ -78,12 +104,12 @@ void CannonBase::CreateShot(VECTOR pos, VECTOR dir)
 	gravityPow_ = 0.0f;
 
 	//当たり判定半径
-	bulletRadius_ = 20.0f;
+	bulletRadius_ = DEFAULT_BULLET_RADIUS;
 
 	// カプセルコライダー生成
 	capsule_ = std::make_unique<Capsule>(Transform()); // 仮のTransform
-	capsule_->SetLocalPosTop(VAdd(pos_, { 0.0f, 10.0f, 0.0f }));
-	capsule_->SetLocalPosDown(VAdd(pos_, { 0.0f, -10.0f, 0.0f }));
+	capsule_->SetLocalPosTop(VAdd(pos_, { 0.0f, CAPSULE_HALF_HEIGHT, 0.0f }));
+	capsule_->SetLocalPosDown(VAdd(pos_, { 0.0f, -CAPSULE_HALF_HEIGHT, 0.0f }));
 	capsule_->SetRadius(radius_);
 
 	// カプセルの位置を弾の座標に反映
@@ -95,8 +121,10 @@ void CannonBase::CreateShot(VECTOR pos, VECTOR dir)
 	//// 爆発のアニメーション速度
 	//blastSpeedAnim_ = 0.3f;
 	auto player = player_.lock();
-	player->Damage(static_cast<int>(Damage_ * DamageRate) /2);
-
+	if (player)
+	{
+		player->Damage(static_cast<int>(Damage_ * DamageRate * PLAYER_DAMAGE_RATE));
+	}
 	// 状態遷移
 	ChangeState(STATE::SHOT);
 }
@@ -124,7 +152,7 @@ void CannonBase::Update(void)
 		break;
 	}
 
-		prevPos_ = pos_;
+	prevPos_ = pos_;
 
 }
 
@@ -141,17 +169,8 @@ void CannonBase::UpdateShot(void)
 	// 移動量の計算(方向×スピード)
 	VECTOR movePow;
 
-	//movePow.x = dir_.x * speed_;
-	//movePow.y = dir_.y * speed_;
-	//movePow.z = dir_.z * speed_;
-	// 移動前に前フレーム位置を保存（<- 追加）
-
 	movePow = VScale(dir_, speed_);
 
-	//移動処理(座標+移動量)
-   //pos_.x = pos_.x + movePow.x;
-   //pos_.y = pos_.y + movePow.y;
-   //pos_.z = pos_.z + movePow.z;
 	// 移動前に前フレーム位置を保存
 	prevPos_ = pos_;
 
@@ -172,7 +191,7 @@ void CannonBase::UpdateShot(void)
 
 	//位置の設定
 	MV1SetPosition(modelId_, pos_);
-	
+
 	// カプセルを更新
 	UpdateCapsulePos();
 
@@ -188,7 +207,7 @@ void CannonBase::UpdateBlast(void)
 
 	// 爆発時間を加算
 	blastTimer_ += SceneManager::GetInstance().GetDeltaTime();
-	
+
 	// 1回だけ爆風ダメージ判定
 	if (!hasDealtDamage_)
 	{
@@ -217,8 +236,8 @@ void CannonBase::UpdateCapsulePos()
 	if (!capsule_) return;
 
 	// ローカル座標 + 弾の座標
-	capsule_->SetLocalPosTop(VAdd({ 0.0f, 10.0f, 0.0f }, pos_));
-	capsule_->SetLocalPosDown(VAdd({ 0.0f, -10.0f, 0.0f }, pos_));
+	capsule_->SetLocalPosTop(VAdd({ 0.0f, CAPSULE_HALF_HEIGHT, 0.0f }, pos_));
+	capsule_->SetLocalPosDown(VAdd({ 0.0f, -CAPSULE_HALF_HEIGHT, 0.0f }, pos_));
 }
 
 void CannonBase::CheckBlastDamage()
@@ -228,7 +247,7 @@ void CannonBase::CheckBlastDamage()
 	case CARD_RARITY::BRONZE: DamageRate = 1.0f; break;
 	case CARD_RARITY::SILVER: DamageRate = 1.5f; break;
 	case CARD_RARITY::GOLD:   DamageRate = 2.0f; break;
-	}	
+	}
 	// Player ダメージ
 	if (!player_.expired())
 	{
@@ -239,7 +258,7 @@ void CannonBase::CheckBlastDamage()
 		{
 			player->Damage(static_cast<int>(Damage_ * DamageRate));
 		}
-	}	
+	}
 	if (!enemy_.expired())
 	{
 		auto enemy = enemy_.lock();
@@ -281,23 +300,17 @@ void CannonBase::Draw()
 	default:
 		break;
 	}
-	  DrawEffekseer3D();
+	DrawEffekseer3D();
 
 }
 
 void CannonBase::DrawShot()
 {
 	MV1DrawModel(modelId_);
-	//DrawSphere3D(pos_, bulletRadius_, 16, GetColor(55, 250, 50), 0x00ff00, false);
 }
 
 void CannonBase::DrawBlast()
 {
-#ifdef _DEBUG
-	//DrawSphere3D(pos_, blastRadius_ * DamageRate, 16, GetColor(255, 50, 50), 0x00ff00, false);
-#endif
-	/*DrawBillboard3D(
-		pos_, 0.5f, 0.5f, 80.0f, 0.0f, blastImgs_[blastIdxAnim_], true);*/
 }
 
 void CannonBase::DrawEnd()
@@ -393,7 +406,7 @@ void CannonBase::Colliders(void)
 		if (hits.HitNum > 0)
 		{
 			auto hit = hits.Dim[0];
-			pos_ = VAdd(pos_, VScale(hit.Normal, 1.0f));  // 埋まらないよう少しずらす
+			pos_ = VAdd(pos_, VScale(hit.Normal, HIT_PUSH_BACK));  // 埋まらないよう少しずらす
 			Blast();
 			MV1CollResultPolyDimTerminate(hits);
 			return;
@@ -430,30 +443,30 @@ void CannonBase::Colliders(void)
 void CannonBase::PlayBlastEffect()
 {
 	switch (rarity_)
-    {
-    case CARD_RARITY::BRONZE:
-        SoundManager::GetInstance().PlaySE(SoundManager::SOUND_ID::BLAST_S,
+	{
+	case CARD_RARITY::BRONZE:
+		SoundManager::GetInstance().PlaySE(SoundManager::SOUND_ID::BLAST_S,
 			true,   // ← load を true
 			SoundManager::VOLUME_STANDARD
 		);
-        break;
-    case CARD_RARITY::SILVER:
-        SoundManager::GetInstance().PlaySE(SoundManager::SOUND_ID::BLAST_M,
+		break;
+	case CARD_RARITY::SILVER:
+		SoundManager::GetInstance().PlaySE(SoundManager::SOUND_ID::BLAST_M,
 			true,   // ← load を true
 			SoundManager::VOLUME_STANDARD
 		);
-        break;
-    case CARD_RARITY::GOLD:
-        SoundManager::GetInstance().PlaySE(SoundManager::SOUND_ID::BLAST_L,
+		break;
+	case CARD_RARITY::GOLD:
+		SoundManager::GetInstance().PlaySE(SoundManager::SOUND_ID::BLAST_L,
 			true,   // ← load を true
 			SoundManager::VOLUME_STANDARD
 		);
-        break;
-    }
+		break;
+	}
 
 	//エフェクト再生
 	blastEffectPlayId_ = PlayEffekseer3DEffect(blastEffectHandle_);
-	float ShotSize = 30.0f * DamageRate;
+	float ShotSize = DEFAULT_EFFECT_SCALE * DamageRate;
 
 	//スケール
 	SetScalePlayingEffekseer3DEffect(
@@ -464,7 +477,7 @@ void CannonBase::PlayBlastEffect()
 
 	//位置
 	//VECTOR pos = transform_.pos;
-	SetPosPlayingEffekseer3DEffect(blastEffectPlayId_, pos_.x, pos_.y + 40, pos_.z);
+	SetPosPlayingEffekseer3DEffect(blastEffectPlayId_, pos_.x, pos_.y + BLAST_OFFSET_Y, pos_.z);
 
 	// タイマー初期化
 	blastTimer_ = 0.0f;

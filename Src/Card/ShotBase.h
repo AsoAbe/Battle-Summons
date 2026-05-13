@@ -10,6 +10,16 @@ class ShotBase :
 public:
 	// 爆発エフェクトの大きさ
 	static constexpr float BLAST_SCALE = 10.0f;
+
+	//弾の基本サイズ
+	static constexpr float DEFAULT_SCALE = 0.2f;
+
+	//弾の当たり判定半径
+	static constexpr float DEFAULT_COLLISION_RADIUS = 15.0f;
+
+	//モデル補正回転角度
+	static constexpr float MODEL_ROT_X = 90.0f;
+
 	// 状態
 	enum class STATE
 	{
@@ -19,16 +29,13 @@ public:
 		END,
 	};
 
-	// コンストラクタ・Init・Createの区別がややこしいので、
-	// Init無し
+
 	ShotBase(void);
 	virtual ~ShotBase(void);
-	/// <summary>
-	/// 弾の生成
-	/// </summary>
 
-	/// <param name="birthPos">初期座標</param>
-	/// <param name="dir">進行方向</param>
+	//弾の生成
+	//birthPos : 初期座標
+	//dir      : 進行方向
 	virtual void Create(VECTOR birthPos, VECTOR dir);
 	virtual void Update(void);
 	virtual void Draw(void);
@@ -77,5 +84,7 @@ protected:
 
 	//直前のPos
 	VECTOR prevPos_;
+
+	bool hasDealtDamage_ = false;
 
 };

@@ -13,16 +13,15 @@
 #include "../Card/Heal.h"
 #include "../Card/Shot.h"
 #include "../Card/Cannon.h"
-#include "../Card/Monster.h"
 #include "Camera.h"
 #include "CardManager.h"
-
-//カードのアイコンを作ったが位置が合わない
 
 CardManager::CardManager()
 {
     player_ = nullptr;
     enemy_ = nullptr;
+    shot_ = nullptr;
+    cannon_ = nullptr;
     base_ = nullptr;
     cardImgBr_ = cardImgSl_ = cardImgGo_ = -1;
 
@@ -59,32 +58,28 @@ bool CardManager::Init()
 void CardManager::Update()
 {
     InputManager& ins = InputManager::GetInstance();
-  
+
     // --- レア度切り替え -------------------
 
-    if (ins.IsTrgDown(KEY_INPUT_V))
+    if (ins.IsTrgDown(KEY_INPUT_LSHIFT))
     {
         int val = static_cast<int>(rarity_);
         val++;
         if (val > static_cast<int>(CARD::GOLD)) val = static_cast<int>(CARD::BRONZE);
         rarity_ = static_cast<CARD>(val);
-        //printfDx("Rarity changed: %d\n", val);
     }
 
     // 押した瞬間だけ発動
     if (ins.IsTrgDown(KEY_INPUT_X))
     {
-        //printfDx("Heal card used!\n");
         DoCard(EFFECT::HEAL);
     }
     if (ins.IsTrgDown(KEY_INPUT_Q))
     {
-        //printfDx("Shot card used!\n");
         DoCard(EFFECT::SHOT);
-    } 
+    }
     if (ins.IsTrgDown(KEY_INPUT_E))
     {
-        //printfDx("Cannon card used!\n");
         //すでにCannonが存在している場合は再生成しない
         if (!base_ || dynamic_cast<Cannon*>(base_.get()) == nullptr)
         {
@@ -114,34 +109,19 @@ void CardManager::Draw()
     if (base_)
         base_->Draw();
 
-  //  // UI表示
-  ////=== カード枠描画 ===
-  //  int cx = 100;
-  //  int cy = 500;
-
-  //  int cardImg = -1;
-  //  switch (rarity_)
-  //  {
-  //  case CARD::BRONZE:
-  //      cardImg = cardImgBr_;
-  //      break;
-  //  case CARD::SILVER:
-  //      cardImg = cardImgSl_;
-  //      break;
-  //  case CARD::GOLD:
-  //      cardImg = cardImgGo_;
-  //      break;
-  //  }
-
-  //  DrawRotaGraph(cx, cy, 0.12f, 0.0, cardImg, true);
-
     //アイコン描画
     DrawCardIcon();
+    int baseX = CARD_STRING_X;
+    int baseY = CARD_STRING_Y;
+    int interval = CARD_INTERVAL;
+    DrawFormatString(baseX, baseY, 0x000000, "Q", true);
+    DrawFormatString(baseX * 2 - 35, baseY, 0x000000, "E", true);
 
 }
 
 bool CardManager::Release()
 {
+
     if (cardImgBr_ != -1) DeleteGraph(cardImgBr_);
     if (cardImgSl_ != -1) DeleteGraph(cardImgSl_);
     if (cardImgGo_ != -1) DeleteGraph(cardImgGo_);
@@ -171,29 +151,39 @@ void CardManager::DoCard(EFFECT effectId)
         base_ = std::make_unique<Heal>(player_);
         break;
     case EFFECT::SHOT:
-        base_ = std::make_shared<Shot>(player_,enemy_);
-        break;
-    case EFFECT::CANNON:
-        base_ = std::make_shared<Cannon>(player_,enemy_);
-        break;
-    default:
-        base_ = std::make_unique<CardBase>();
+    {
+        auto shot = std::make_shared<Shot>(player_, enemy_);
+        shot->Activate(static_cast<CardBase::CARD_RARITY>(rarity_));
+
+        // ★ base_ に入れない
+        SceneManager::GetInstance().AddShot(shot);
         break;
     }
- 
-    // 効果発動
-    if (base_)
+    // （常に1個まで）
+    case EFFECT::CANNON:
     {
-         // 現在のレア度をカードに渡す
-        base_->SetRarity(static_cast<CardBase::CARD_RARITY>(rarity_));
-
-        base_->Init();
-        base_->ProcessCard();
-       
-        if (player_ && !player_->IsAttacking())
+        if (!base_ || dynamic_cast<Cannon*>(base_.get()) == nullptr)
         {
-            player_->StartAttack();
+            base_ = std::make_shared<Cannon>(player_, enemy_);
+            base_->Activate(static_cast<CardBase::CARD_RARITY>(rarity_));
         }
+        else
+        {
+            // 既存砲台への再指示
+            base_->ProcessCard();
+        }
+        break;
+    }
+    default:
+        break;
+    }
+
+    // -------------------------------
+    // カード使用モーション（中身は関係ない）
+    // -------------------------------
+    if (player_ && !player_->IsAttacking())
+    {
+        player_->StartAttack();
     }
 }
 
@@ -220,21 +210,18 @@ void CardManager::LoadIcons()
     cardImgGo_ = LoadGraph("Data/Image/素材/金カード2.png");
 
     // 効果アイコン
-    //iconHeal_ = LoadGraph("Data/Image/素材/heal.png");
     iconShot_ = LoadGraph("Data/Image/素材/Shot.png");
     iconCannon_ = LoadGraph("Data/Image/素材/Cannon.png");
-    //iconMonster_ = LoadGraph("Data/Image/素材/monster.png");
 
-    int baseX = 20;
-    int baseY = 450;
-    int interval = 150;
+    int baseX = CARD_BASE_X;
+    int baseY = CARD_BASE_Y;
+    int interval = CARD_INTERVAL;
 
     // ★ すべて「カード中心(100,500)からのオフセット」で管理
     cardList_.clear();
-    //cardList_.push_back({ EFFECT::HEAL,    baseX + interval * 0, baseY });
     cardList_.push_back({ EFFECT::SHOT,iconShot_,  baseX + interval * 1, baseY });
     cardList_.push_back({ EFFECT::CANNON, iconCannon_, baseX + interval * 2, baseY });
-    //cardList_.push_back({ EFFECT::MONSTER,  baseX + interval * 3, baseY });
+
 }
 
 void CardManager::DrawCardIcon()
@@ -252,9 +239,9 @@ void CardManager::DrawCardIcon()
     for (auto& c : cardList_)
     {
         // レア度に応じた枠を描画
-        DrawRotaGraph(c.x, c.y, 0.12f, 0.0, cardImg, TRUE);
+        DrawRotaGraph(c.x, c.y, CARD_DRAW_SCALE, 0.0, cardImg, TRUE);
 
         // アイコン（固定）
-        DrawRotaGraph(c.x, c.y , 0.10f, 0.0, c.iconImg, TRUE);
+        DrawRotaGraph(c.x, c.y, ICON_DRAW_SCALE, 0.0, c.iconImg, TRUE);
     }
 }

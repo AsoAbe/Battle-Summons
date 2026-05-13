@@ -8,24 +8,49 @@
 ShotBase::ShotBase(void)
 {
 	// 初期化
+	state_ = STATE::NONE;
+
+	timeAlive_ = 0.0f;
 	stepAlive_ = 0.0f;
+
+	collisionRadius_ = DEFAULT_COLLISION_RADIUS;
+
+	scale = DEFAULT_SCALE;
+
+	effectBlastResId_ = -1;
+	effectBlastPlayId_ = -1;
+
+	prevPos_ = AsoUtility::VECTOR_ZERO;
+
+	hasDealtDamage_ = false;
+
 	dir_ = AsoUtility::VECTOR_ZERO;
-	// パラメータ設定
-	//SetParam();
+
 	// モデル制御の基本情報
 	ResourceManager& rem = ResourceManager::GetInstance();
+
 	transform_.modelId =
 		rem.LoadModelDuplicate(ResourceManager::SRC::SHOT_MODEL);
-	scale = 0.2f;
+
 	transform_.scl = { scale, scale, scale };
+
 	transform_.pos = AsoUtility::VECTOR_ZERO;
+
 	transform_.quaRot = Quaternion();
+
 	transform_.quaRotLocal =
-		Quaternion::Euler(AsoUtility::Deg2RadF(90.0f), 0.0f, 0.0f);
+		Quaternion::Euler(
+			AsoUtility::Deg2RadF(MODEL_ROT_X),
+			0.0f,
+			0.0f);
+
 	transform_.Update();
+
 	// 爆発エフェクト
-	effectBlastResId_ = ResourceManager::GetInstance().Load(
-		ResourceManager::SRC::SHOT_EXPLOSION).handleId_;
+	effectBlastResId_ =
+		ResourceManager::GetInstance().Load(
+			ResourceManager::SRC::SHOT_EXPLOSION
+		).handleId_;
 }
 
 ShotBase::~ShotBase(void)
@@ -34,17 +59,25 @@ ShotBase::~ShotBase(void)
 
 void ShotBase::Create(VECTOR birthPos, VECTOR dir)
 {
+
 	// パラメータ設定
 	SetParam();
 	// 再利用可能なようにする
+
+	hasDealtDamage_ = false;
+
 	// 指定方向に弾を飛ばす
 	dir_ = dir;
+
 	// 弾の発生位置
 	transform_.pos = birthPos;
+
 	// 弾モデルの向き(角度)を指定方向に合わせる
 	transform_.quaRot = Quaternion::LookRotation(dir_);
+
 	//当たり判定の半径
-	collisionRadius_ = 15.0f;
+	collisionRadius_ = DEFAULT_COLLISION_RADIUS;
+
 	// 生存フラグ、時間の初期化
 	stepAlive_ = timeAlive_;
 
@@ -69,7 +102,7 @@ ShotBase::STATE ShotBase::GetState(void)
 void ShotBase::Update(void)
 {
 	VECTOR before = transform_.pos;
-	
+
 	switch (state_)
 	{
 	case ShotBase::STATE::NONE:
