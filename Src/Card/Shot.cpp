@@ -30,7 +30,7 @@ void Shot::Update()
 }
 
 void Shot::SetParam()
-{
+{	
 	// --- レア度ごとの補正 ---
 	float rate = 1.0f;
 	switch (rarity_)
@@ -57,17 +57,17 @@ void Shot::SetParam()
 	scale = DEFAULT_SCALE * rate;
 	Damage_ = DEFAULT_DAMAGE / rate;
 
-	if (player_)
+	if(player_)
 	{
 		player_->Damage(static_cast<int>(Damage_ * rate) * PLAYER_DAMAGE_RATE);
 	}
-
+	
 }
 
 void Shot::ProcessCard()
 {
 	if (!player_) return;
-
+	
 	SoundManager::SOUND_ID se = SoundManager::SOUND_ID::SHOT_S;
 
 	// レア度ごとの倍率

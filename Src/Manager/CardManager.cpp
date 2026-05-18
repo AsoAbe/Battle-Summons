@@ -10,7 +10,6 @@
 #include "../Object/Stage.h"
 #include "../Object/Planet.h"
 #include "../Card/CardBase.h"
-#include "../Card/Heal.h"
 #include "../Card/Shot.h"
 #include "../Card/Cannon.h"
 #include "Camera.h"
@@ -58,7 +57,7 @@ bool CardManager::Init()
 void CardManager::Update()
 {
     InputManager& ins = InputManager::GetInstance();
-
+  
     // --- レア度切り替え -------------------
 
     if (ins.IsTrgDown(KEY_INPUT_LSHIFT))
@@ -70,14 +69,11 @@ void CardManager::Update()
     }
 
     // 押した瞬間だけ発動
-    if (ins.IsTrgDown(KEY_INPUT_X))
-    {
-        DoCard(EFFECT::HEAL);
-    }
+   
     if (ins.IsTrgDown(KEY_INPUT_Q))
     {
         DoCard(EFFECT::SHOT);
-    }
+    } 
     if (ins.IsTrgDown(KEY_INPUT_E))
     {
         //すでにCannonが存在している場合は再生成しない
@@ -147,35 +143,32 @@ void CardManager::DoCard(EFFECT effectId)
     std::shared_ptr<CardBase> card;
     switch (effectId)
     {
-    case EFFECT::HEAL:
-        base_ = std::make_unique<Heal>(player_);
-        break;
-    case EFFECT::SHOT:
-    {
-        auto shot = std::make_shared<Shot>(player_, enemy_);
-        shot->Activate(static_cast<CardBase::CARD_RARITY>(rarity_));
+        case EFFECT::SHOT:
+        {
+            auto shot = std::make_shared<Shot>(player_, enemy_);
+            shot->Activate(static_cast<CardBase::CARD_RARITY>(rarity_));
 
-        // ★ base_ に入れない
-        SceneManager::GetInstance().AddShot(shot);
-        break;
-    }
-    // （常に1個まで）
-    case EFFECT::CANNON:
-    {
-        if (!base_ || dynamic_cast<Cannon*>(base_.get()) == nullptr)
-        {
-            base_ = std::make_shared<Cannon>(player_, enemy_);
-            base_->Activate(static_cast<CardBase::CARD_RARITY>(rarity_));
+            // ★ base_ に入れない
+            SceneManager::GetInstance().AddShot(shot);
+            break;
         }
-        else
+        // （常に1個まで）
+        case EFFECT::CANNON:
         {
-            // 既存砲台への再指示
-            base_->ProcessCard();
+            if (!base_ || dynamic_cast<Cannon*>(base_.get()) == nullptr)
+            {
+                base_ = std::make_shared<Cannon>(player_, enemy_);
+                base_->Activate(static_cast<CardBase::CARD_RARITY>(rarity_));
+            }
+            else
+            {
+                // 既存砲台への再指示
+                base_->ProcessCard();
+            }
+            break;
         }
-        break;
-    }
-    default:
-        break;
+        default:
+            break;
     }
 
     // -------------------------------
@@ -242,6 +235,6 @@ void CardManager::DrawCardIcon()
         DrawRotaGraph(c.x, c.y, CARD_DRAW_SCALE, 0.0, cardImg, TRUE);
 
         // アイコン（固定）
-        DrawRotaGraph(c.x, c.y, ICON_DRAW_SCALE, 0.0, c.iconImg, TRUE);
+        DrawRotaGraph(c.x, c.y , ICON_DRAW_SCALE, 0.0, c.iconImg, TRUE);
     }
 }

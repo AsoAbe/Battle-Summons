@@ -1,4 +1,5 @@
 #include <string>
+#include <EffekseerForDXLib.h>
 #include "../Application.h"
 #include "../Utility/AsoUtility.h"
 #include "../Manager/InputManager.h"
@@ -42,14 +43,23 @@ Player::Player(void)
 	invincibleTimer_ = 0;
 	alive_ = true;
 	
+	regenTimer_ = 0.0f;
+	regenInterval_ = 0.0f;   // 1秒ごと
+	regenAmount_ = 0;        // 1回の回復量
+
 	capsuleOffsetY = 0.0f;
 	footOffsetY = 0.0f;
 
-	// 衝突チェック
-	gravHitPosDown_ = AsoUtility::VECTOR_ZERO;
-	gravHitPosUp_ = AsoUtility::VECTOR_ZERO;
+	//// 衝突チェック
+	//gravHitPosDown_ = AsoUtility::VECTOR_ZERO;
+	//gravHitPosUp_ = AsoUtility::VECTOR_ZERO;
 
 	imgShadow_ = -1;
+
+	// エフェクト関連
+	HealEffectHandle_ = -1;
+	HealEffectPlayId_ = -1;
+	isHealEffectPlaying_ = false;
 
 	capsule_ = nullptr;
 
@@ -58,6 +68,7 @@ Player::Player(void)
 	// 状態管理
 	stateChanges_.emplace(STATE::NONE, std::bind(&Player::ChangeStateNone, this));
 	stateChanges_.emplace(STATE::PLAY, std::bind(&Player::ChangeStatePlay, this));
+	stateChanges_.emplace(STATE::DEAD, std::bind(&Player::ChangeStateDead, this));
 	
 }
 
@@ -98,6 +109,10 @@ void Player::Init(void)
 	// 丸影画像
 	imgShadow_ = resMng_.Load(ResourceManager::SRC::PLAYER_SHADOW).handleId_;
 
+
+	HealEffectHandle_ = ResourceManager::GetInstance().Load(
+		ResourceManager::SRC::HEAL).handleId_;
+
 	animationController_->Play(static_cast<int>(ANIM_TYPE::RUN));
 
 	// 初期状態
@@ -105,14 +120,39 @@ void Player::Init(void)
 
 	MaxHp_ = MAX_HP;
 	Hp_ = MAX_HP;
+	//生存判定初期化(保険　タイトルでもしている)
+	SceneManager::GetInstance().SetPlayerAlive(true);
 
+	regenInterval_ = 1.0f;
+	regenAmount_ = 5;  
 }
 
 void Player::Update(void)
 {
 	// 無敵時間カウントダウン
 	float delta = SceneManager::GetInstance().GetDeltaTime();
+
+	// 死亡中
+	/*if (isDead_)
+	{
+		Died(delta);
+		return;
+	}*/
+
 	UpdateInvincible(delta);
+
+	//持続回復
+	UpdateRegen(delta);
+	
+	// 単発エフェクトの終了確認
+	if (isHealEffectPlaying_)
+	{
+		if (IsEffekseer3DEffectPlaying(HealEffectPlayId_) != 0)
+		{
+			isHealEffectPlaying_ = false;
+			HealEffectPlayId_ = -1;
+		}
+	}
 
 	//// 更新ステップ
 	//stateUpdate_();
@@ -151,8 +191,8 @@ void Player::Update(void)
 		shot->Update();
 	}
 
-	//死亡
-	Died();
+
+	UpdateEffekseer3D();
 }
 
 void Player::Draw(void)
@@ -171,22 +211,12 @@ void Player::Draw(void)
 		shot->Draw();
 	}
 	//DrawFormatString(0, 190, GetColor(0, 255, 0), "Player Pos: %.0f, %.0f, %.0f", GetPos().x, GetPos().y, GetPos().z);
-
+	DrawEffekseer3D();
 }
 
 bool Player::Release()
 {
 	return false;
-}
-
-void Player::AddCollider(std::weak_ptr<Collider> collider)
-{
-	colliders_.push_back(collider);
-}
-
-void Player::ClearCollider(void)
-{
-	colliders_.clear();
 }
 
 const Capsule& Player::GetCapsule(void) const
@@ -208,6 +238,7 @@ void Player::InitAnimation(void)
 	animationController_->Add((int)ANIM_TYPE::FLY, path + "Flying.mv1", 60.0f);
 	animationController_->Add((int)ANIM_TYPE::FALLING, path + "Falling.mv1", 80.0f);
 	animationController_->Add((int)ANIM_TYPE::VICTORY, path + "Victory.mv1", 60.0f);
+	animationController_->Add((int)ANIM_TYPE::DEAD, path + "Down2.mv1", 60.0f);
 
 	animationController_->Play((int)ANIM_TYPE::IDLE);
 
@@ -231,7 +262,23 @@ void Player::ChangeStateNone(void)
 
 void Player::ChangeStatePlay(void)
 {
+	transform_.modelOffset.y = 45.0f;
 	stateUpdate_ = std::bind(&Player::UpdatePlay, this);
+}
+
+void Player::ChangeStateDead()
+{
+	transform_.modelOffset.y = 0.0f;
+	/*PlayAnimation(ANIM_TYPE::DEAD, false);*/
+	animationController_->Play(
+		(int)ANIM_TYPE::DEAD,
+		false,     // ループしない
+		0.0f,
+		-1.0f,     // 最後まで
+		false,
+		false     // ★止めない（Golemと同じ）
+	);
+	stateUpdate_ = std::bind(&Player::UpdateDead, this);
 }
 
 void Player::UpdateNone(void)
@@ -253,15 +300,96 @@ void Player::UpdatePlay(void)
 	// 移動方向に応じた回転
 	Rotate();
 
-	// 重力による移動量
-	CalcGravityPow();
-
-	// 衝突判定
+	// 衝突判定&重力処理
 	Collision();
+
+	//UpdatePhysics();
 
 	// 回転させる
 	transform_.quaRot = playerRotY_;
 
+}
+
+void Player::UpdateRegen(float deltaTime)
+{
+	if (!alive_) return;
+
+	if (Hp_ >= MaxHp_)
+	{
+		StopHealEffect();   //満タンで止める
+		return;
+	}
+
+	regenTimer_ += deltaTime;
+
+	if (regenTimer_ >= regenInterval_)
+	{
+		regenTimer_ -= regenInterval_;
+
+		Hp_ += regenAmount_;
+		if (Hp_ > MaxHp_)
+		{
+			Hp_ = MaxHp_;
+		}
+
+		PlayHealEffect();   // ★ここで再生
+	}
+}
+
+void Player::UpdateDead()
+{
+	float delta = SceneManager::GetInstance().GetDeltaTime();
+	deadTimer_ += delta;
+
+	if (gameOverReserved_ && deadTimer_ >= deadDelay_)
+	{
+		gameOverReserved_ = false;
+		SceneManager::GetInstance().SetPlayerAlive(false);
+		sceneGame_->GameOver();
+	}
+}
+
+void Player::PlayHealEffect(void)
+{
+	// もし前回の再生がまだ生きてたら再生しない（保険）
+	if (isHealEffectPlaying_)
+	{
+		if (IsEffekseer3DEffectPlaying(HealEffectPlayId_) == 0)
+		{
+			return;
+		}
+	}
+
+	// 再生
+	HealEffectPlayId_ = PlayEffekseer3DEffect(HealEffectHandle_);
+
+	// 位置設定（必須）
+	SetPosPlayingEffekseer3DEffect(
+		HealEffectPlayId_,
+		transform_.pos.x,
+		transform_.pos.y + 130.0f,
+		transform_.pos.z
+	);
+
+	float size = 10.0f;
+	//大きさ
+	SetScalePlayingEffekseer3DEffect(
+		HealEffectPlayId_,
+		size,
+		size,
+		size
+	);
+
+	isHealEffectPlaying_ = true;
+}
+
+void Player::StopHealEffect(void)
+{
+	if (!isHealEffectPlaying_) return;
+
+	StopEffekseer3DEffect(HealEffectPlayId_);
+	HealEffectPlayId_ = -1;
+	isHealEffectPlaying_ = false;
 }
 
 void Player::UpdateInvincible(float deltaTime)
@@ -274,9 +402,10 @@ void Player::UpdateInvincible(float deltaTime)
 	}
 }
 
+
 void Player::DrawShadow(void)
 {
-
+	if (state_ == STATE::DEAD || !alive_) return;
 	float PLAYER_SHADOW_HEIGHT = 300.0f;
 	float PLAYER_SHADOW_SIZE = 30.0f;
 
@@ -370,6 +499,7 @@ void Player::DrawShadow(void)
 
 void Player::ProcessMove(void)
 {
+	if (state_ == STATE::DEAD) return;
 
 	auto& ins = InputManager::GetInstance();
 
@@ -386,54 +516,31 @@ void Player::ProcessMove(void)
 	double rotRad = 0;
 
 	VECTOR dir = AsoUtility::VECTOR_ZERO;
-/*
-	// カメラ方向に前進したい
-	if (ins.IsNew(KEY_INPUT_W))
-	{
-		rotRad = AsoUtility::Deg2RadD(0.0);
-		dir = cameraRot.GetForward();
-	}
 
-	// カメラ方向から後退したい
-	if (ins.IsNew(KEY_INPUT_S))
-	{
-		rotRad = AsoUtility::Deg2RadD(180.0);
-		dir = cameraRot.GetBack();
-	}
-
-	// カメラ方向から右側へ移動したい
-	if (ins.IsNew(KEY_INPUT_D))
-	{
-		rotRad = AsoUtility::Deg2RadD(90.0);
-		dir = cameraRot.GetRight();
-	}
-
-	// カメラ方向から左側へ移動したい
-	if (ins.IsNew(KEY_INPUT_A))
-	{
-		rotRad = AsoUtility::Deg2RadD(270.0);
-		dir = cameraRot.GetLeft();
-	}
-*/
 	// ゲームパッドが接続数で処理を分ける
 	if (GetJoypadNum() == 0)
 	{
 		// WASDで移動する
 		if (ins.IsNew(KEY_INPUT_W)) {
 			rotRad = AsoUtility::Deg2RadD(0.0);
-			dir = cameraRot.GetForward();
+			//dir = cameraRot.GetForward();
+			dir = VAdd(dir, cameraRot.GetForward());
 		}
 		if (ins.IsNew(KEY_INPUT_A)) {
 			rotRad = AsoUtility::Deg2RadD(270.0);
-			dir = cameraRot.GetLeft();
+			//dir = cameraRot.GetLeft();
+			dir = VAdd(dir, cameraRot.GetLeft());
+
 		}
 		if (ins.IsNew(KEY_INPUT_S)) {
 			rotRad = AsoUtility::Deg2RadD(180.0);
-			dir = cameraRot.GetBack();
+			//dir = cameraRot.GetBack();
+			dir = VAdd(dir, cameraRot.GetBack());
 		}
 		if (ins.IsNew(KEY_INPUT_D)) {
 			rotRad = AsoUtility::Deg2RadD(90.0);
-			dir = cameraRot.GetRight();
+			//dir = cameraRot.GetRight();
+			dir = VAdd(dir, cameraRot.GetRight());
 		}
 	}
 	else
@@ -457,24 +564,16 @@ void Player::ProcessMove(void)
 		//	speed_ = SPEED_RUN;
 		//}
 		speed_ = SPEED_RUN;
+		dir = VNorm(dir);
 		moveDir_ = dir;
 		movePow_ = VScale(dir, speed_);
 
 		// 回転処理
-		SetGoalRotate(rotRad);
+		//SetGoalRotate(rotRad);
 
 		if (!isJump_ && IsEndLanding())
 		{
 			animationController_->Play((int)ANIM_TYPE::FAST_RUN);
-			//// アニメーション
-			//if (ins.IsNew(KEY_INPUT_RSHIFT))
-			//{
-			//	animationController_->Play((int)ANIM_TYPE::FAST_RUN);
-			//}
-			//else
-			//{
-			//	animationController_->Play((int)ANIM_TYPE::RUN);
-			//}
 		}
 	}
 	else
@@ -506,6 +605,7 @@ void Player::ProcessMove(void)
 
 void Player::ProcessJump(void)
 {
+	if (state_ == STATE::DEAD) return;
 
 	bool isHit = CheckHitKey(KEY_INPUT_SPACE);
 
@@ -521,12 +621,7 @@ void Player::ProcessJump(void)
 
 		if (!isJump_)
 		{
-			// 制御無しジャンプ
-			//mAnimationController->Play((int)ANIM_TYPE::JUMP);
-			// ループしないジャンプ
-			//mAnimationController->Play((int)ANIM_TYPE::JUMP, false);
-			// 切り取りアニメーション
-			//mAnimationController->Play((int)ANIM_TYPE::JUMP, false, 13.0f, 24.0f);
+
 			// 無理やりアニメーション
 			animationController_->Play((int)ANIM_TYPE::JUMP, true, 13.0f, 25.0f);
 			animationController_->SetEndLoop(23.0f, 25.0f, 5.0f);
@@ -574,176 +669,196 @@ void Player::SetGoalRotate(double rotRad)
 void Player::Rotate(void)
 {
 
-	stepRotTime_ -= scnMng_.GetDeltaTime();
-
-	// 回転の球面補間
 	playerRotY_ = Quaternion::Slerp(
-		playerRotY_, goalQuaRot_, (TIME_ROT - stepRotTime_) / TIME_ROT);
+	transform_.quaRot, Quaternion::LookRotation(moveDir_), 0.1f);
 
 }
 
-void Player::Collision(void)
+//
+//void Player::Collision(void)
+//{
+//
+//	// 現在座標を起点に移動後座標を決める
+//	movedPos_ = VAdd(transform_.pos, movePow_);
+//
+//	// 衝突(カプセル)
+//	CollisionCapsule();
+//
+//	// 衝突(重力)
+//	CollisionGravity();
+//
+//
+//	// 移動が確定した座標を保存
+//	LastPos_ = movedPos_;
+//
+//	// ---------------------------------------------
+//	//  落下判定（高さが -1000 以下 = ステージ外）
+//	// ---------------------------------------------
+//	if (movedPos_.y < -1000.0f)
+//	{
+//		// ステージ中心（例として (0,0,0)）方向へ少し寄せる
+//		VECTOR stageCenter = VGet(0.0f, 0.0f, 0.0f);
+//
+//		// LastPos_ → 中心への方向
+//		VECTOR dir = VSub(stageCenter, LastPos_);
+//		dir = VNorm(dir);
+//
+//		// ★ 戻す位置＝直前位置 ＋ 中心方向へ 50 だけ寄せる
+//		movedPos_ = VAdd(LastPos_, VScale(dir, 100.0f));
+//
+//		// ★ 少しだけ浮かせて衝突が安定するように
+//		movedPos_.y = 5.0f;
+//
+//		// 重力リセット
+//		jumpPow_ = VGet(0, 0, 0);
+//	}
+//
+//
+//	// 移動
+//	transform_.pos = movedPos_;
+//
+//}
+//
+//void Player::CollisionGravity(void)
+//{
+//
+//	// ジャンプ量を加算
+//	movedPos_ = VAdd(movedPos_, jumpPow_);
+//
+//	// 重力方向
+//	VECTOR dirGravity = AsoUtility::DIR_D;
+//
+//	// 重力方向の反対
+//	VECTOR dirUpGravity = AsoUtility::DIR_U;
+//
+//	// 重力の強さ
+//	float gravityPow = 100.0f;
+//	float checkPow = 10.0f;
+//
+//	gravHitPosUp_ = VAdd(movedPos_, VScale(dirUpGravity, gravityPow));
+//	gravHitPosUp_ = VAdd(gravHitPosUp_, VScale(dirUpGravity, checkPow * 2.0f));
+//	gravHitPosDown_ = VAdd(movedPos_, VScale(dirGravity, checkPow));
+//	for (const auto c : colliders_)
+//	{
+//
+//		// 地面との衝突
+//		auto hit = MV1CollCheck_Line(
+//			c.lock()->modelId_, -1, gravHitPosUp_, gravHitPosDown_);
+//
+//		// 最初は上の行のように実装して、木の上に登ってしまうことを確認する
+//		//着地判定(高さ)
+//		if (hit.HitFlag > 0 && VDot(dirGravity, jumpPow_) > 0.0f)
+//		{
+//
+//			// 衝突地点から、少し上に移動
+//			movedPos_ = VAdd(hit.HitPosition, VScale(dirUpGravity, 2.0f));
+//			/*movedPos_.y = -capsuleOffsetY;*/
+//
+//			// ジャンプリセット
+//			jumpPow_ = AsoUtility::VECTOR_ZERO;
+//			stepJump_ = 0.0f;
+//
+//			if (isJump_)
+//			{
+//				// 着地モーション
+//				animationController_->Play(
+//					(int)ANIM_TYPE::JUMP, false, 29.0f, 45.0f, false, true);
+//			}
+//			isJump_ = false;
+//		}
+//	}
+//}
+//
+//void Player::CollisionCapsule(void)
+//{
+//
+//	// カプセルを移動させる
+//	Transform trans = Transform(transform_);
+//	trans.pos = movedPos_;
+//	trans.Update();
+//	Capsule cap = Capsule(*capsule_, trans);
+//
+//	// カプセルとの衝突判定
+//	for (const auto c : colliders_)
+//	{
+//
+//		auto hits = MV1CollCheck_Capsule(
+//			c.lock()->modelId_, -1,
+//			cap.GetPosTop(), cap.GetPosDown(), cap.GetRadius());
+//
+//		for (int i = 0; i < hits.HitNum; i++)
+//		{
+//
+//			auto hit = hits.Dim[i];
+//
+//			for (int tryCnt = 0; tryCnt < 10; tryCnt++)
+//			{
+//
+//				int pHit = HitCheck_Capsule_Triangle(
+//					cap.GetPosTop(), cap.GetPosDown(), cap.GetRadius(),
+//					hit.Position[0], hit.Position[1], hit.Position[2]);
+//
+//				if (pHit)
+//				{
+//					movedPos_ = VAdd(movedPos_, VScale(hit.Normal, 1.0f));
+//					// カプセルを移動させる
+//					trans.pos = movedPos_;
+//					trans.Update();
+//					continue;
+//				}
+//				break;
+//			}
+//		}
+//
+//		// 検出した地面ポリゴン情報の後始末
+//		MV1CollResultPolyDimTerminate(hits);
+//	}
+//}
+//
+//void Player::CalcGravityPow(void)
+//{
+//
+//	// 重力方向
+//	VECTOR dirGravity = AsoUtility::DIR_D;
+//
+//	// 重力の強さ
+//	float gravityPow = Planet::DEFAULT_GRAVITY_POW;
+//
+//	// 重力
+//	VECTOR gravity = VScale(dirGravity, gravityPow);
+//	jumpPow_ = VAdd(jumpPow_, gravity);
+//
+//	// 最初は実装しない。地面と突き抜けることを確認する。
+//	// 内積
+//	//float dot = VDot(dirGravity, jumpPow_);
+//	//if (dot >= 0.0f)
+//	//{
+//	//	// 重力方向と反対方向(マイナス)でなければ、ジャンプ力を無くす
+//	//	jumpPow_ = gravity;
+//	//}
+//
+//}
+
+void Player::OnLanding(const MV1_COLL_RESULT_POLY& hit)
 {
 
-	// 現在座標を起点に移動後座標を決める
-	movedPos_ = VAdd(transform_.pos, movePow_);
+	// 衝突地点から、少し上に移動
+	//movedPos_ = VAdd(hit.HitPosition, VScale(dirUpGravity, 2.0f));
+	movedPos_.y = hit.HitPosition.y + 2.0f;
 
-	// 衝突(カプセル)
-	CollisionCapsule();
-
-	// 衝突(重力)
-	CollisionGravity();
-
-
-	// 移動が確定した座標を保存
-	LastPos_ = movedPos_;
-
-	// ---------------------------------------------
-	//  落下判定（高さが -1000 以下 = ステージ外）
-	// ---------------------------------------------
-	if (movedPos_.y < -1000.0f)
+	// ジャンプリセット
+	jumpPow_ = AsoUtility::VECTOR_ZERO;
+	//stepJump_ = 0.0f;  Playerで管理
+	stepJump_ = 0.0f;
+	if (isJump_)
 	{
-		// ステージ中心（例として (0,0,0)）方向へ少し寄せる
-		VECTOR stageCenter = VGet(0.0f, 0.0f, 0.0f);
-
-		// LastPos_ → 中心への方向
-		VECTOR dir = VSub(stageCenter, LastPos_);
-		dir = VNorm(dir);
-
-		// ★ 戻す位置＝直前位置 ＋ 中心方向へ 50 だけ寄せる
-		movedPos_ = VAdd(LastPos_, VScale(dir, 100.0f));
-
-		// ★ 少しだけ浮かせて衝突が安定するように
-		movedPos_.y = 5.0f;
-
-		// 重力リセット
-		jumpPow_ = VGet(0, 0, 0);
+		animationController_->Play(
+			(int)ANIM_TYPE::JUMP,
+			false, 29.0f, 45.0f, false, true);
 	}
 
-
-	// 移動
-	transform_.pos = movedPos_;
-
-}
-
-void Player::CollisionGravity(void)
-{
-
-	// ジャンプ量を加算
-	movedPos_ = VAdd(movedPos_, jumpPow_);
-
-	// 重力方向
-	VECTOR dirGravity = AsoUtility::DIR_D;
-
-	// 重力方向の反対
-	VECTOR dirUpGravity = AsoUtility::DIR_U;
-
-	// 重力の強さ
-	float gravityPow = 100.0f;
-	float checkPow = 10.0f;
-
-	gravHitPosUp_ = VAdd(movedPos_, VScale(dirUpGravity, gravityPow));
-	gravHitPosUp_ = VAdd(gravHitPosUp_, VScale(dirUpGravity, checkPow * 2.0f));
-	gravHitPosDown_ = VAdd(movedPos_, VScale(dirGravity, checkPow));
-	for (const auto c : colliders_)
-	{
-
-		// 地面との衝突
-		auto hit = MV1CollCheck_Line(
-			c.lock()->modelId_, -1, gravHitPosUp_, gravHitPosDown_);
-
-		// 最初は上の行のように実装して、木の上に登ってしまうことを確認する
-		//着地判定(高さ)
-		if (hit.HitFlag > 0 && VDot(dirGravity, jumpPow_) > 0.0f)
-		{
-
-			// 衝突地点から、少し上に移動
-			movedPos_ = VAdd(hit.HitPosition, VScale(dirUpGravity, 2.0f));
-			/*movedPos_.y = -capsuleOffsetY;*/
-
-			// ジャンプリセット
-			jumpPow_ = AsoUtility::VECTOR_ZERO;
-			stepJump_ = 0.0f;
-
-			if (isJump_)
-			{
-				// 着地モーション
-				animationController_->Play(
-					(int)ANIM_TYPE::JUMP, false, 29.0f, 45.0f, false, true);
-			}
-			isJump_ = false;
-		}
-	}
-}
-
-void Player::CollisionCapsule(void)
-{
-
-	// カプセルを移動させる
-	Transform trans = Transform(transform_);
-	trans.pos = movedPos_;
-	trans.Update();
-	Capsule cap = Capsule(*capsule_, trans);
-
-	// カプセルとの衝突判定
-	for (const auto c : colliders_)
-	{
-
-		auto hits = MV1CollCheck_Capsule(
-			c.lock()->modelId_, -1,
-			cap.GetPosTop(), cap.GetPosDown(), cap.GetRadius());
-
-		for (int i = 0; i < hits.HitNum; i++)
-		{
-
-			auto hit = hits.Dim[i];
-
-			for (int tryCnt = 0; tryCnt < 10; tryCnt++)
-			{
-
-				int pHit = HitCheck_Capsule_Triangle(
-					cap.GetPosTop(), cap.GetPosDown(), cap.GetRadius(),
-					hit.Position[0], hit.Position[1], hit.Position[2]);
-
-				if (pHit)
-				{
-					movedPos_ = VAdd(movedPos_, VScale(hit.Normal, 1.0f));
-					// カプセルを移動させる
-					trans.pos = movedPos_;
-					trans.Update();
-					continue;
-				}
-				break;
-			}
-		}
-
-		// 検出した地面ポリゴン情報の後始末
-		MV1CollResultPolyDimTerminate(hits);
-	}
-}
-
-void Player::CalcGravityPow(void)
-{
-
-	// 重力方向
-	VECTOR dirGravity = AsoUtility::DIR_D;
-
-	// 重力の強さ
-	float gravityPow = Planet::DEFAULT_GRAVITY_POW;
-
-	// 重力
-	VECTOR gravity = VScale(dirGravity, gravityPow);
-	jumpPow_ = VAdd(jumpPow_, gravity);
-
-	// 最初は実装しない。地面と突き抜けることを確認する。
-	// 内積
-	//float dot = VDot(dirGravity, jumpPow_);
-	//if (dot >= 0.0f)
-	//{
-	//	// 重力方向と反対方向(マイナス)でなければ、ジャンプ力を無くす
-	//	jumpPow_ = gravity;
-	//}
-
+	isJump_ = false;
+	
 }
 
 bool Player::IsEndLanding(void)
@@ -780,8 +895,7 @@ void Player::Heal(int Value)
 bool Player::Damage(int damage)
 {
 	// 無敵中はダメージ無効
-	if (invincibleTimer_ > 0.0f)
-		return false;
+	if (invincibleTimer_ > 0.0f || isDead_) return false;
 
 	SoundManager::GetInstance().PlaySE(
 		SoundManager::SOUND_ID::HIT,
@@ -790,39 +904,49 @@ bool Player::Damage(int damage)
 	);
 
 	Hp_ -= damage;
-	damaged_ = true;
 
 	if (Hp_ <= 0)
 	{
 		Hp_ = 0;
 		alive_ = false;
-		//printfDx("Player Died!\n");
-	}
-	else
-	{
-		//printfDx("Player took %d damage! HP: %d\n", damage, Hp_);
+		isDead_ = true;
+
+		ChangeState(STATE::DEAD);
+		// ディレイ開始
+		deadTimer_ = 0.0f;
+		gameOverReserved_ = true;
+
+		return true;
 	}
 
-	// 無敵開始
 	invincibleTimer_ = INVINCIBLE_TIME;
 	return true;
 }
 
-void Player::Died()
+void Player::Died(float delta)
 {
-	//if (sceneGame_->IsTutorial())
+	////判定
+	//if (Hp_ <= 0)
 	//{
-	//	//チュートリアル中は死なない
-	//	return;
+	//	SceneManager::GetInstance().SetPlayerAlive(false);
+	//	sceneGame_->GameOver();
 	//}
-	//SetActive(false);
+	//deadTimer_ += delta;
 
-	//判定
-	if (Hp_ <= 0)
-	{
-		SceneManager::GetInstance().SetPlayerAlive(false);
-		sceneGame_->GameOver();
-	}
+	//// 死亡アニメ進行
+	//animationController_->Update();
+	//transform_.Update();
+
+	//// 死亡アニメ
+	//animationController_->Play((int)ANIM_TYPE::DEAD, true,0.0f,60.0f);
+
+	//// ディレイ後にゲームオーバー
+	//if (gameOverReserved_ && deadTimer_ >= deadDelay_)
+	//{
+	//	gameOverReserved_ = false;
+	//	SceneManager::GetInstance().SetPlayerAlive(false);
+	//	sceneGame_->GameOver();
+	//}
 }
 
 float Player::GetMaxHp()
@@ -846,15 +970,6 @@ void Player::ProcessShot(bool byCard)
 
 	auto& ins = InputManager::GetInstance();
 
-	//// 攻撃キーを押すと、弾を生成
-	//if ((byCard || ins.IsNew(KEY_INPUT_N)) && deleyShot_ <= 0.0f)
-	//{
-	//	// 弾発射後の硬直時間セット
-	//	deleyShot_ = TIME_DELAY_SHOT;
-
-	//	// 弾を生成(方向は仮で正面方向)
-	//	CreateGoldShot();
-	//}
 }
 
 void Player::CreateShot(void)
@@ -1044,6 +1159,7 @@ void Player::PlayAnimation(ANIM_TYPE animType, bool loop, float startFrame, floa
 
 void Player::StartAttack()
 {
+	if (state_ == STATE::DEAD) return;
 	if (isAttacking_) return;  // 攻撃中なら無視
 
 	transform_.modelOffset.y = 10.0f;
@@ -1073,11 +1189,6 @@ VECTOR Player::GetRot()
 bool Player::IsAlive() const
 {
 	return alive_;
-}
-
-float Player::GetRadius() const
-{
-	return capsule_ ? capsule_->GetRadius() : 0.0f;
 }
 
 VECTOR Player::GetForward() const

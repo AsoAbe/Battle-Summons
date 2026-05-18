@@ -12,11 +12,9 @@
 #include "../Object/Player.h"
 #include "GameOverScene.h"
 
-//エフェクトストップを書く　CardManagerにも
 
 GameOverScene::GameOverScene(void)
 {
-
 }
 
 GameOverScene::~GameOverScene(void)
@@ -68,7 +66,7 @@ void GameOverScene::Draw(void)
 	if (SceneManager::GetInstance().IsPlayerAlive())
 	{
 		DrawGraph(-40, -90, Clear, true);
-		DrawFormatString(480, 520, 0x00ffff, "PUSH SPACE", true);
+		DrawFormatString(480, 520, 0x000000, "PUSH SPACE", true);
 	}
 	else
 	{

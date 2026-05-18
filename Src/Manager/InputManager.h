@@ -62,7 +62,7 @@ public:
 		L_TRIGGER,
 		MAX
 	};
-
+	
 	// XInput ボタン番号
 	static constexpr int XINPUT_BTN_A = 0;
 	static constexpr int XINPUT_BTN_B = 1;
@@ -70,10 +70,10 @@ public:
 	static constexpr int XINPUT_BTN_Y = 3;
 
 	// DualSense ボタン番号
-	static constexpr int DUALSENSE_BTN_SQUARE = 0;
-	static constexpr int DUALSENSE_BTN_CROSS = 1;
-	static constexpr int DUALSENSE_BTN_CIRCLE = 2;
-	static constexpr int DUALSENSE_BTN_TRIANGLE = 3;
+	static constexpr int DUALSENSE_BTN_SQUARE = 0;   //□
+	static constexpr int DUALSENSE_BTN_CROSS = 1;    //×
+	static constexpr int DUALSENSE_BTN_CIRCLE = 2;   //○
+	static constexpr int DUALSENSE_BTN_TRIANGLE = 3; //△
 
 	// ゲームコントローラーの入力情報
 	struct JOYPAD_IN_STATE
@@ -187,7 +187,7 @@ private:
 
 	// マウスカーソルの位置
 	Vector2 mousePos_;
-
+	
 	// マウスボタンの入力状態
 	int mouseInput_;
 

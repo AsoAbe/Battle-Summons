@@ -121,8 +121,8 @@ void GamePanel::Draw()
 
 
 	// “G‚Ì‘Ì—Íƒo[  --------------------------
-	int barWidth = Application::MAINGAME_SIZE_X + 150;   // ‰æ–Ê‚¢‚Á‚Ï‚¢
-	int barHeight = 40;                             // ‚©‚È‚è‘å‚«‚ß
+	int barWidth = Application::MAINGAME_SIZE_X + 280;   // ‰æ–Ê‚¢‚Á‚Ï‚¢
+	int barHeight = 30;                             // ‚©‚È‚è‘å‚«‚ß
 	int x = 0;
 	int y = 30;                                     // ‰æ–Êã•”ƒMƒŠƒMƒŠ
 

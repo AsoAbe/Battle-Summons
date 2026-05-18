@@ -55,7 +55,7 @@ void SceneManager::Init(void)
 	Init3D();
 
 	// 初期シーンの設定
-	DoChangeScene(SCENE_ID::TITLE);
+	DoChangeScene(SCENE_ID::GAME);
 
 }
 
@@ -80,7 +80,6 @@ void SceneManager::Init3D(void)
 	// ライトの設定
 	ChangeLightTypeDir({ 0.3f, -0.7f, 0.8f });
 	//ChangeLightTypeDir({ 0.0f, 0.0f, 0.5f });
-
 
 	// フォグ設定
 	SetFogEnable(true);
@@ -242,7 +241,6 @@ void SceneManager::ResetDeltaTime(void)
 
 void SceneManager::DoChangeScene(SCENE_ID sceneId)
 {
-	//SoundManager::GetInstance().ReleaseAllSound();
 	
 	// リソースの解放
 	ResourceManager::GetInstance().Release();

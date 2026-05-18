@@ -46,7 +46,7 @@ public:
 	int handleId_;
 
 	// IMGS::LoadDivGraph—p
-	int* handleIds_;
+	std::vector<int> handleIds_;
 	int numX_;
 	int numY_;
 	int sizeX_;

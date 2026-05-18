@@ -63,21 +63,21 @@ void ShotBase::Create(VECTOR birthPos, VECTOR dir)
 	// パラメータ設定
 	SetParam();
 	// 再利用可能なようにする
-
+	
 	hasDealtDamage_ = false;
 
 	// 指定方向に弾を飛ばす
 	dir_ = dir;
-
+	
 	// 弾の発生位置
 	transform_.pos = birthPos;
-
+	
 	// 弾モデルの向き(角度)を指定方向に合わせる
 	transform_.quaRot = Quaternion::LookRotation(dir_);
-
+	
 	//当たり判定の半径
 	collisionRadius_ = DEFAULT_COLLISION_RADIUS;
-
+	
 	// 生存フラグ、時間の初期化
 	stepAlive_ = timeAlive_;
 
@@ -102,7 +102,7 @@ ShotBase::STATE ShotBase::GetState(void)
 void ShotBase::Update(void)
 {
 	VECTOR before = transform_.pos;
-
+	
 	switch (state_)
 	{
 	case ShotBase::STATE::NONE:

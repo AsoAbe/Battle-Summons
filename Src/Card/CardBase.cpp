@@ -20,7 +20,7 @@ CardBase::~CardBase(void)
 bool CardBase::Init(void)
 {
 	SetParam();
-	return true;
+    return true;
 }
 
 void CardBase::Update(void)
@@ -33,7 +33,7 @@ void CardBase::Draw(void)
 
 bool CardBase::Release(void)
 {
-	return true;
+    return true;
 }
 
 void CardBase::SetParam()
@@ -62,7 +62,7 @@ bool CardBase::IsAlive() const
 
 void CardBase::SetRarity(CARD_RARITY rarity)
 {
-	rarity_ = rarity;
+	 rarity_ = rarity; 
 }
 
 void CardBase::SetEnemy(std::weak_ptr<EnemyGolem> enemy)

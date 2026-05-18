@@ -25,10 +25,8 @@
     <ClCompile Include="Src\Object\EnemyGolem.cpp" />
     <ClCompile Include="Src\Card\CannonBase.cpp" />
     <ClCompile Include="Src\Card\ShotBase.cpp" />
-    <ClCompile Include="Src\Card\Monster.cpp" />
     <ClCompile Include="Src\Card\Cannon.cpp" />
     <ClCompile Include="Src\Card\Shot.cpp" />
-    <ClCompile Include="Src\Card\Heal.cpp" />
     <ClCompile Include="Src\UI\GamePanel.cpp" />
     <ClCompile Include="Src\Common\DrawUtility.cpp" />
     <ClCompile Include="Src\UI\PanelBase.cpp" />
@@ -75,10 +73,8 @@
     <ClInclude Include="Src\Object\EnemyGolem.h" />
     <ClInclude Include="Src\Card\CannonBase.h" />
     <ClInclude Include="Src\Card\ShotBase.h" />
-    <ClInclude Include="Src\Card\Monster.h" />
     <ClInclude Include="Src\Card\Cannon.h" />
     <ClInclude Include="Src\Card\Shot.h" />
-    <ClInclude Include="Src\Card\Heal.h" />
     <ClInclude Include="Src\UI\GamePanel.h" />
     <ClInclude Include="Src\Common\DrawUtility.h" />
     <ClInclude Include="Src\UI\PanelBase.h" />

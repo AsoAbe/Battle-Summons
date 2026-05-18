@@ -49,6 +49,7 @@ public:
 		CANNON_SHOT,
 		CANNON_BLAST,
 		TACKLE_CHARGE,
+		HEAL,
 	};
 
 	// 明示的にインステンスを生成する

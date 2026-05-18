@@ -14,6 +14,8 @@
 #include "EnemyGolem.h"
 #include <EffekseerForDXLib.h>
 
+//重力がおかしい？CharacterBaseのものと合わない
+
 EnemyGolem::EnemyGolem(GameScene& scene)
     : scene_(scene)
 {
@@ -49,15 +51,26 @@ EnemyGolem::EnemyGolem(GameScene& scene)
     Hp_ = MaxHp_ = 100.0f;  // 例として
     state_ = STATE::NONE;
 
-    moveDir_ = VGet(0.0f, 0.0f, 0.0f);
-    jumpPow_ = VGet(0, 0, 0);
-    gravity_ = Planet::DEFAULT_GRAVITY_POW;
-    isGround_ = false;
+    //死亡関連
+    deadTimer_ = 0.0f;
+    deadDelay_ = 0.0f;
+    gameOverReserved_ = false;
+
+    moveDir_ = AsoUtility::VECTOR_ZERO;
+	movePow_ = AsoUtility::VECTOR_ZERO;
+	movedPos_ = AsoUtility::VECTOR_ZERO;
+	LastPos_ = AsoUtility::VECTOR_ZERO;
+    jumpPow_ = AsoUtility::VECTOR_ZERO;
+    isJump_ = false;
+    //gravity_ = Planet::DEFAULT_GRAVITY_POW;
+    //isGround_ = false;
 
     LastPos_ = AsoUtility::VECTOR_ZERO;
 
     capsule_ = nullptr;
     capsuleOffsetY = 0.0f;
+
+    imgShadow_ = -1;
 
     // 状態遷移設定
     stateChanges_.emplace(STATE::NONE, std::bind(&EnemyGolem::ChangeStateNone, this));
@@ -85,13 +98,18 @@ void EnemyGolem::Init()
     chargeEffectHandle_ = ResourceManager::GetInstance().Load(
         ResourceManager::SRC::TACKLE_CHARGE).handleId_;
 
+    // 丸影画像
+    imgShadow_ = resMng_.Load(ResourceManager::SRC::PLAYER_SHADOW).handleId_;
+
     //Capsuleコライダ（Playerと同じ仕組み）
     capsule_ = std::make_unique<Capsule>(transform_);
     capsuleOffsetY = 0.0f;
 
     // ゴーレム用の当たり範囲（地面用）
+    /*capsule_->SetLocalPosTop({ 0.0f, 200.0f, 0.0f });
+    capsule_->SetLocalPosDown({ 0.0f, 20.0f, 0.0f });*/
     capsule_->SetLocalPosTop({ 0.0f, 200.0f, 0.0f });
-    capsule_->SetLocalPosDown({ 0.0f, 20.0f, 0.0f });
+    capsule_->SetLocalPosDown({ 0.0f, 90.0f, 0.0f });
     capsule_->SetRadius(60.0f);
 
     //Playerの攻撃による判定用
@@ -100,10 +118,13 @@ void EnemyGolem::Init()
     capsuleRadius_ = 60.0f;
 
     // モデルのオフセット
-    transform_.modelOffset = { 0.0f, -40.0f, 0.0f };
+    //transform_.modelOffset = { 0.0f, -40.0f, 0.0f };
+    transform_.modelOffset = { 0.0f, 0.0f, 0.0f };
 
     MaxHp_ = MAX_HP;
     Hp_ = MAX_HP;
+    deadDelay_ = 2.5f;
+
     EnemyStart_ = false;
 
     // アニメーション初期化
@@ -133,12 +154,6 @@ void EnemyGolem::Update()
     prevPos_ = transform_.pos;
     float delta = SceneManager::GetInstance().GetDeltaTime();
 
-    // 重力計算
-    CalcGravityPow();
-
-    // 位置更新・当たり判定
-    Collision();
-
     switch (state_)
     {
     case STATE::IDLE:   UpdateIdle(); break;
@@ -149,15 +164,18 @@ void EnemyGolem::Update()
     case STATE::DEAD:   UpdateDead(); break;
     }
 
+    // 位置更新・当たり判定&重力
+    Collision();
+
     //エフェクト更新
     UpdateEffekseer3D();
 
     // ★ルートモーションの打ち消し★
     // （モデルの描画座標をtransform_.posで上書きする）
-    transform_.pos = movedPos_;
+    //transform_.pos = movedPos_;
     transform_.Update();
 
-    transform_.modelOffset.y = -20.0f;
+    //transform_.modelOffset.y = -30.0f;
 
     MV1SetPosition(transform_.modelId, transform_.pos);
 
@@ -184,18 +202,13 @@ void EnemyGolem::Draw()
     MV1SetPosition(transform_.modelId, transform_.pos);
     MV1DrawModel(transform_.modelId);
 
+    // 丸影描画
+    DrawShadow();
 
 #ifdef _DEBUG
+    
     //DrawSphere3D(
-    //    attackPos,              // 球の中心位置
-    //    100.0f,                 // 半径
-    //    16,                     // 分割数
-    //    GetColor(255, 0, 0),    // 拡散色
-    //    GetColor(255, 0, 0),    // 鏡面色（同じでOK）
-    //    false                   // 塗りつぶさない（ワイヤーフレーム）
-    //);
-    //DrawSphere3D(
-    //    transform_.pos,              // 球の中心位置
+    //    debugAttackPos_,              // 球の中心位置
     //    tackleHitRadius_,                 // 半径
     //    16,                     // 分割数
     //    GetColor(255, 0, 0),    // 拡散色
@@ -238,7 +251,7 @@ void EnemyGolem::UpdateIdle()
     //transform_.modelOffset.y = -30.0f;
 
     //重力はゼロにする
-    jumpPow_ = VGet(0, 0, 0);
+    //jumpPow_ = VGet(0, 0, 0);  Baseに任せる
 
     auto player = GetPlayer();
     if (!player) return;
@@ -333,24 +346,29 @@ void EnemyGolem::UpdateAttack()
         float now = SceneManager::GetInstance().GetTotalTime();
         attackHitStartTime_ = now + 0.4f;
         attackHitEndTime_ = now + 0.6f;
-        isAttackHitActive_ = false;
+        attackHitDone_ = false;
     }
 
     float now = SceneManager::GetInstance().GetTotalTime();
 
     // 攻撃判定ONになるタイミング
-    if (!isAttackHitActive_ && now >= attackHitStartTime_ && now <= attackHitEndTime_)
+    if (!attackHitDone_ && now >= attackHitStartTime_ && now <= attackHitEndTime_)
     {
-        isAttackHitActive_ = true;
-        ActivateAttackHit();  // 判定ON
+        if (CheckAttackHit(120.0f  //位置
+            , 70.0f                //高さ
+            , 140.0f))             //範囲
+        {
+            player->Damage(20);
+            attackHitDone_ = true;
+        }
     }
 
-    // 攻撃判定終了
-    if (isAttackHitActive_ && now > attackHitEndTime_)
-    {
-        isAttackHitActive_ = false;
-        DeactivateAttackHit(); // 判定OFF
-    }
+    //// 攻撃判定終了
+    //if (isAttackHitActive_ && now > attackHitEndTime_)
+    //{
+    //    isAttackHitActive_ = false;
+    //    DeactivateAttackHit(); // 判定OFF
+    //}
 
     // 攻撃アニメーションが終了したら次の行動へ
     if (animationController_->IsEnd())
@@ -446,7 +464,7 @@ void EnemyGolem::UpdateTackle()
     VECTOR dirXZ = tackleDir_;
     dirXZ.y = 0;
   
-    if (!tackleHitDone_)
+    /*if (!tackleHitDone_)
     {
         auto player = GetPlayer();
         if (player)
@@ -458,7 +476,17 @@ void EnemyGolem::UpdateTackle()
                 tackleHitDone_ = true;
             }
         }
+    }*/
+
+    if (isTackleRunning_ && !tackleHitDone_)
+    {
+        if (CheckAttackHit(0.0f, 50.0f, tackleHitRadius_))
+        {
+            player->Damage(20);
+            tackleHitDone_ = true;
+        }
     }
+
     // ★内積で通過チェック
     float dot = VDot(toPlayer, dirXZ);
 
@@ -554,7 +582,15 @@ void EnemyGolem::DoRest(float value)
 
 void EnemyGolem::UpdateDead()
 {
-    animationController_->Play((int)ANIM_TYPE::DEAD, false);
+    float delta = SceneManager::GetInstance().GetDeltaTime();
+
+    deadTimer_ += delta;
+
+    if (gameOverReserved_ && deadTimer_ >= deadDelay_)
+    {
+        gameOverReserved_ = false;
+        scene_.GameOver();
+    }
 }
 
 bool EnemyGolem::Damage(int value)
@@ -567,7 +603,11 @@ bool EnemyGolem::Damage(int value)
         Hp_ = 0.0f;
         alive_ = false;
  
-        scene_.GameOver();
+        ChangeState(STATE::DEAD);
+        animationController_->Play((int)ANIM_TYPE::DEAD, false);
+
+        deadTimer_ = 0.0f;
+        gameOverReserved_ = true;
     }
     return true;
 }
@@ -613,191 +653,309 @@ void EnemyGolem::MoveTowardPlayer(float deltaTime)
     transform_.pos = VAdd(transform_.pos, VScale(moveDir_, moveSpeed_ * deltaTime));
 }
 
-void EnemyGolem::ActivateAttackHit()
+bool EnemyGolem::CheckAttackHit(
+    float forwardOffset,
+    float heightOffset,
+    float radius
+)
 {
     auto player = GetPlayer();
-    if (!player) return;
+    if (!player) return false;
 
-    // 前方方向を取得
+    // ★毎フレーム計算する
+    VECTOR center = transform_.pos;
+
+    // 前方向（モデルが -Z 向きなので反転）
     VECTOR forward = transform_.quaRot.GetForward();
+    forward = VScale(forward, -1.0f);
 
-    // ★攻撃判定を少し上へ持ち上げる
-    VECTOR offset = VGet(0.0f, 70.0f, 0.0f);
-
-    // ゴーレムの手前方に攻撃範囲を作る（例: 半径100）
-    attackPos = VAdd(
-        VAdd(transform_.pos, VScale(forward, -120.0f)),
-        offset
+    // 攻撃判定の中心位置
+    debugAttackPos_ = VAdd(
+        VAdd(center, VScale(forward, forwardOffset)),
+        VGet(0.0f, heightOffset, 0.0f)
     );
 
-    // プレイヤーとの距離でヒットチェック
-    VECTOR diff = VSub(player->GetPos(), attackPos);
-    float dist = VSize(diff);
+    // 距離判定
+    float dist = VSize(VSub(player->GetPos(), debugAttackPos_));
 
-    if (dist < 140.0f)
-    {
-        player->Damage(20);
-    }
-
+    return dist <= radius;
 }
 
 void EnemyGolem::DeactivateAttackHit()
 {
     // 今回は何も必要なし（1フレームのみのダメージ処理）
 }
+//
+//void EnemyGolem::Collision(void)
+//{
+//    // 移動後の仮座標を決める
+//    movedPos_ = VAdd(transform_.pos, movePow_);
+//
+//    //重力衝突
+//    CollisionGravity();
+//
+//    //カプセル衝突
+//    CollisionCapsule();
+//
+//    if (VSize(VSub(movedPos_, prevPos_)) > 200.0f)
+//    {
+//        // 何かおかしい場合（ワープ・突き抜け）の緊急リセット
+//        movedPos_ = prevPos_;
+//    }
+//
+//    // 移動が確定した座標を保存
+//    LastPos_ = movedPos_;
+//
+//    // ---------------------------------------------
+//    //  落下判定（高さが -200 以下 = ステージ外）
+//    // ---------------------------------------------
+//    if (movedPos_.y < -1000.0f)
+//    {
+//        // ステージ中心（例として (0,0,0)）方向へ少し寄せる
+//        VECTOR stageCenter = VGet(0.0f, 0.0f, 0.0f);
+//
+//        // LastPos_ → 中心への方向
+//        VECTOR dir = VSub(stageCenter, LastPos_);
+//        dir = VNorm(dir);
+//
+//        // ★ 戻す位置＝直前位置 ＋ 中心方向へ 50 だけ寄せる
+//        movedPos_ = VAdd(LastPos_, VScale(dir, 100.0f));
+//
+//        // ★ 少しだけ浮かせて衝突が安定するように
+//        movedPos_.y = 5.0f;
+//
+//        // 重力リセット
+//        jumpPow_ = VGet(0, 0, 0);
+//    }
+//
+//    //最終座標を反映
+//    transform_.pos = movedPos_;
+//}
+//
+//void EnemyGolem::CollisionGravity(void)
+//{
+//    // 重力の追加
+//    movedPos_ = VAdd(movedPos_, jumpPow_);
+//
+//    VECTOR dirGravity = AsoUtility::DIR_D;
+//    VECTOR dirUp = AsoUtility::DIR_U;
+//
+//    float checkLen = 20.0f;
+//
+//    // 衝突判定Ray
+//    VECTOR rayStart = VAdd(movedPos_, VScale(dirUp, checkLen));
+//    VECTOR rayEnd = VAdd(movedPos_, VScale(dirGravity, checkLen));
+//
+//    for (auto c : colliders_)
+//    {
+//        if (c.expired()) continue;
+//
+//        auto hit = MV1CollCheck_Line(
+//            c.lock()->modelId_, -1, rayStart, rayEnd);
+//
+//        if (hit.HitFlag > 0)
+//        {
+//            // 地形の角度は考慮せず、垂直に補正する
+//            movedPos_.y = hit.HitPosition.y + 2.0f;
+//
+//            // 重力リセット（坂の下へ滑る力を完全にゼロ
+//            jumpPow_ = VGet(0, 0, 0);
+//
+//            isGround_ = true;
+//            return;
+//        }
+//    }
+//
+//    // 接地していない
+//    isGround_ = false;
+//}
+//
+//void EnemyGolem::CollisionCapsule(void)
+//{
+//    Transform trans = transform_;
+//    trans.pos = movedPos_;
+//    trans.Update();
+//
+//    Capsule cap = Capsule(*capsule_, trans);
+//
+//    for (const auto& c : colliders_)
+//    {
+//        if (c.expired()) continue;
+//
+//        auto hits = MV1CollCheck_Capsule(
+//            c.lock()->modelId_, -1,
+//            cap.GetPosTop(), cap.GetPosDown(), cap.GetRadius());
+//
+//        for (int i = 0; i < hits.HitNum; i++)
+//        {
+//            auto hit = hits.Dim[i];
+//
+//            for (int t = 0; t < 10; t++)
+//            {
+//                int pHit = HitCheck_Capsule_Triangle(
+//                    cap.GetPosTop(), cap.GetPosDown(), cap.GetRadius(),
+//                    hit.Position[0], hit.Position[1], hit.Position[2]);
+//
+//                if (pHit)
+//                {
+//                    VECTOR n = hit.Normal;
+//
+//                    // 法線の水平成分（XZ）は無効化：垂直方向だけにする
+//                    VECTOR verticalOnly = VGet(0.0f, n.y, 0.0f);
+//
+//                    // 垂直分だけで押し出し（XZ方向に影響しない）
+//                    movedPos_ = VAdd(movedPos_, VScale(verticalOnly, 1.0f));
+//
+//                    trans.pos = movedPos_;
+//                    trans.Update();
+//                    continue;
+//                }
+//                break;
+//            }
+//        }
+//
+//        MV1CollResultPolyDimTerminate(hits);
+//    }
+//}
+//
+//void EnemyGolem::CalcGravityPow(void)
+//{
+//
+//    // プレイヤーと同じ重力方向
+//    VECTOR dirGravity = AsoUtility::DIR_D;
+//
+//    // 重力ベクトルを計算
+//    VECTOR gravityVec = VScale(dirGravity, gravity_ * 0.038f); // ※ 60FPS タイマー調整
+//
+//    // 重力加算
+//    jumpPow_ = VAdd(jumpPow_, gravityVec);
+//
+//    // 最初は実装しない。地面と突き抜けることを確認する。
+//    // 内積
+//    //float dot = VDot(dirGravity, jumpPow_);
+//    //if (dot >= 0.0f)
+//    //{
+//    //	// 重力方向と反対方向(マイナス)でなければ、ジャンプ力を無くす
+//    //	jumpPow_ = gravity;
+//    //}
+//
+//}
 
-void EnemyGolem::Collision(void)
+void EnemyGolem::OnLanding(const MV1_COLL_RESULT_POLY& hit)
 {
-    // 移動後の仮座標を決める
-    movedPos_ = VAdd(transform_.pos, movePow_);
+    movedPos_.y = hit.HitPosition.y + 2.0f;
 
-    //重力衝突
-    CollisionGravity();
+    // ゴーレムは跳ね・滑りを完全に無効化
+    jumpPow_ = VGet(0.0f, 0.0f, 0.0f);
 
-    //カプセル衝突
-    CollisionCapsule();
-
-    if (VSize(VSub(movedPos_, prevPos_)) > 200.0f)
-    {
-        // 何かおかしい場合（ワープ・突き抜け）の緊急リセット
-        movedPos_ = prevPos_;
-    }
-
-    // 移動が確定した座標を保存
-    LastPos_ = movedPos_;
-
-    // ---------------------------------------------
-    //  落下判定（高さが -200 以下 = ステージ外）
-    // ---------------------------------------------
-    if (movedPos_.y < -1000.0f)
-    {
-        // ステージ中心（例として (0,0,0)）方向へ少し寄せる
-        VECTOR stageCenter = VGet(0.0f, 0.0f, 0.0f);
-
-        // LastPos_ → 中心への方向
-        VECTOR dir = VSub(stageCenter, LastPos_);
-        dir = VNorm(dir);
-
-        // ★ 戻す位置＝直前位置 ＋ 中心方向へ 50 だけ寄せる
-        movedPos_ = VAdd(LastPos_, VScale(dir, 100.0f));
-
-        // ★ 少しだけ浮かせて衝突が安定するように
-        movedPos_.y = 5.0f;
-
-        // 重力リセット
-        jumpPow_ = VGet(0, 0, 0);
-    }
-
-    //最終座標を反映
-    transform_.pos = movedPos_;
+    isGround_ = true;
 }
 
-void EnemyGolem::CollisionGravity(void)
+void EnemyGolem::OnCapsuleHit(const MV1_COLL_RESULT_POLY& hit, const Capsule& cap)
 {
-    // 重力の追加
-    movedPos_ = VAdd(movedPos_, jumpPow_);
+    VECTOR n = hit.Normal;
 
-    VECTOR dirGravity = AsoUtility::DIR_D;
-    VECTOR dirUp = AsoUtility::DIR_U;
+    // ★Y方向の押し出しを禁止
+    VECTOR horizontal = VGet(n.x, 0.0f, n.z);
 
-    float checkLen = 20.0f;
-
-    // 衝突判定Ray
-    VECTOR rayStart = VAdd(movedPos_, VScale(dirUp, checkLen));
-    VECTOR rayEnd = VAdd(movedPos_, VScale(dirGravity, checkLen));
-
-    for (auto c : colliders_)
+    if (VSize(horizontal) > 0.0001f)
     {
-        if (c.expired()) continue;
+        horizontal = VNorm(horizontal);
+        movedPos_ = VAdd(movedPos_, VScale(horizontal, 1.0f));
+    }
+}
 
-        auto hit = MV1CollCheck_Line(
-            c.lock()->modelId_, -1, rayStart, rayEnd);
+void EnemyGolem::DrawShadow(void)
+{
 
-        if (hit.HitFlag > 0)
+    float PLAYER_SHADOW_HEIGHT = 300.0f;
+    float PLAYER_SHADOW_SIZE = 120.0f;
+
+    int i;
+    MV1_COLL_RESULT_POLY_DIM HitResDim;
+    MV1_COLL_RESULT_POLY* HitRes;
+    VERTEX3D Vertex[3] = { VERTEX3D(), VERTEX3D(), VERTEX3D() };
+    VECTOR SlideVec;
+    int ModelHandle;
+
+    // ライティングを無効にする
+    SetUseLighting(FALSE);
+
+    // Ｚバッファを有効にする
+    SetUseZBuffer3D(TRUE);
+
+    // テクスチャアドレスモードを CLAMP にする( テクスチャの端より先は端のドットが延々続く )
+    SetTextureAddressMode(DX_TEXADDRESS_CLAMP);
+
+    // 影を落とすモデルの数だけ繰り返し
+    for (const auto c : colliders_)
+    {
+
+        // チェックするモデルは、jが0の時はステージモデル、1以上の場合はコリジョンモデル
+        ModelHandle = c.lock()->modelId_;
+
+        // プレイヤーの直下に存在する地面のポリゴンを取得
+        HitResDim = MV1CollCheck_Capsule(
+            ModelHandle, -1,
+            transform_.pos, VAdd(transform_.pos, { 0.0f, -PLAYER_SHADOW_HEIGHT, 0.0f }), PLAYER_SHADOW_SIZE);
+
+        // 頂点データで変化が無い部分をセット
+        Vertex[0].dif = GetColorU8(255, 255, 255, 255);
+        Vertex[0].spc = GetColorU8(0, 0, 0, 0);
+        Vertex[0].su = 0.0f;
+        Vertex[0].sv = 0.0f;
+        Vertex[1] = Vertex[0];
+        Vertex[2] = Vertex[0];
+
+        // 球の直下に存在するポリゴンの数だけ繰り返し
+        HitRes = HitResDim.Dim;
+        for (i = 0; i < HitResDim.HitNum; i++, HitRes++)
         {
-            // 地形の角度は考慮せず、垂直に補正する
-            movedPos_.y = hit.HitPosition.y + 2.0f;
+            // ポリゴンの座標は地面ポリゴンの座標
+            Vertex[0].pos = HitRes->Position[0];
+            Vertex[1].pos = HitRes->Position[1];
+            Vertex[2].pos = HitRes->Position[2];
 
-            // 重力リセット（坂の下へ滑る力を完全にゼロ
-            jumpPow_ = VGet(0, 0, 0);
+            // ちょっと持ち上げて重ならないようにする
+            SlideVec = VScale(HitRes->Normal, 0.5f);
+            Vertex[0].pos = VAdd(Vertex[0].pos, SlideVec);
+            Vertex[1].pos = VAdd(Vertex[1].pos, SlideVec);
+            Vertex[2].pos = VAdd(Vertex[2].pos, SlideVec);
 
-            isGround_ = true;
-            return;
-        }
-    }
+            // ポリゴンの不透明度を設定する
+            Vertex[0].dif.a = 0;
+            Vertex[1].dif.a = 0;
+            Vertex[2].dif.a = 0;
+            if (HitRes->Position[0].y > transform_.pos.y - PLAYER_SHADOW_HEIGHT)
+                Vertex[0].dif.a = static_cast<int>(roundf(128.0f * (1.0f - fabs(HitRes->Position[0].y - transform_.pos.y) / PLAYER_SHADOW_HEIGHT)));
 
-    // 接地していない
-    isGround_ = false;
-}
+            if (HitRes->Position[1].y > transform_.pos.y - PLAYER_SHADOW_HEIGHT)
+                Vertex[1].dif.a = static_cast<int>(roundf(128.0f * (1.0f - fabs(HitRes->Position[1].y - transform_.pos.y) / PLAYER_SHADOW_HEIGHT)));
 
-void EnemyGolem::CollisionCapsule(void)
-{
-    Transform trans = transform_;
-    trans.pos = movedPos_;
-    trans.Update();
+            if (HitRes->Position[2].y > transform_.pos.y - PLAYER_SHADOW_HEIGHT)
+                Vertex[2].dif.a = static_cast<int>(roundf(128.0f * (1.0f - fabs(HitRes->Position[2].y - transform_.pos.y) / PLAYER_SHADOW_HEIGHT)));
 
-    Capsule cap = Capsule(*capsule_, trans);
+            // ＵＶ値は地面ポリゴンとプレイヤーの相対座標から割り出す
+            Vertex[0].u = (HitRes->Position[0].x - transform_.pos.x) / (PLAYER_SHADOW_SIZE * 2.0f) + 0.5f;
+            Vertex[0].v = (HitRes->Position[0].z - transform_.pos.z) / (PLAYER_SHADOW_SIZE * 2.0f) + 0.5f;
+            Vertex[1].u = (HitRes->Position[1].x - transform_.pos.x) / (PLAYER_SHADOW_SIZE * 2.0f) + 0.5f;
+            Vertex[1].v = (HitRes->Position[1].z - transform_.pos.z) / (PLAYER_SHADOW_SIZE * 2.0f) + 0.5f;
+            Vertex[2].u = (HitRes->Position[2].x - transform_.pos.x) / (PLAYER_SHADOW_SIZE * 2.0f) + 0.5f;
+            Vertex[2].v = (HitRes->Position[2].z - transform_.pos.z) / (PLAYER_SHADOW_SIZE * 2.0f) + 0.5f;
 
-    for (const auto& c : colliders_)
-    {
-        if (c.expired()) continue;
-
-        auto hits = MV1CollCheck_Capsule(
-            c.lock()->modelId_, -1,
-            cap.GetPosTop(), cap.GetPosDown(), cap.GetRadius());
-
-        for (int i = 0; i < hits.HitNum; i++)
-        {
-            auto hit = hits.Dim[i];
-
-            for (int t = 0; t < 10; t++)
-            {
-                int pHit = HitCheck_Capsule_Triangle(
-                    cap.GetPosTop(), cap.GetPosDown(), cap.GetRadius(),
-                    hit.Position[0], hit.Position[1], hit.Position[2]);
-
-                if (pHit)
-                {
-                    VECTOR n = hit.Normal;
-
-                    // 法線の水平成分（XZ）は無効化：垂直方向だけにする
-                    VECTOR verticalOnly = VGet(0.0f, n.y, 0.0f);
-
-                    // 垂直分だけで押し出し（XZ方向に影響しない）
-                    movedPos_ = VAdd(movedPos_, VScale(verticalOnly, 1.0f));
-
-                    trans.pos = movedPos_;
-                    trans.Update();
-                    continue;
-                }
-                break;
-            }
+            // 影ポリゴンを描画
+            DrawPolygon3D(Vertex, 1, imgShadow_, TRUE);
         }
 
-        MV1CollResultPolyDimTerminate(hits);
+        // 検出した地面ポリゴン情報の後始末
+        MV1CollResultPolyDimTerminate(HitResDim);
     }
-}
 
-void EnemyGolem::CalcGravityPow(void)
-{
+    // ライティングを有効にする
+    SetUseLighting(TRUE);
 
-    // プレイヤーと同じ重力方向
-    VECTOR dirGravity = AsoUtility::DIR_D;
-
-    // 重力ベクトルを計算
-    VECTOR gravityVec = VScale(dirGravity, gravity_ * 0.038f); // ※ 60FPS タイマー調整
-
-    // 重力加算
-    jumpPow_ = VAdd(jumpPow_, gravityVec);
-
-    // 最初は実装しない。地面と突き抜けることを確認する。
-    // 内積
-    //float dot = VDot(dirGravity, jumpPow_);
-    //if (dot >= 0.0f)
-    //{
-    //	// 重力方向と反対方向(マイナス)でなければ、ジャンプ力を無くす
-    //	jumpPow_ = gravity;
-    //}
+    // Ｚバッファを無効にする
+    SetUseZBuffer3D(FALSE);
 
 }
 
@@ -838,12 +996,14 @@ void EnemyGolem::ChangeStateMove()
 
 void EnemyGolem::ChangeStateAttack()
 {
+    attackHitDone_ = false;
     stateUpdate_ = std::bind(&EnemyGolem::UpdateAttack, this);
 }
 
 void EnemyGolem::ChangeStateTackle()
 {
     isTackling_ = true;
+    tackleHitDone_ = false;
     stateUpdate_ = std::bind(&EnemyGolem::UpdateTackle, this);
 }
 
@@ -855,36 +1015,6 @@ void EnemyGolem::ChangeStateRest()
 void EnemyGolem::ChangeStateDead()
 {
     stateUpdate_ = std::bind(&EnemyGolem::UpdateDead, this);
-}
-
-void EnemyGolem::AddCollider(std::weak_ptr<Collider> collider)
-{
-    colliders_.push_back(collider);
-}
-
-void EnemyGolem::ClearCollider(void)
-{
-    colliders_.clear();
-}
-
-VECTOR EnemyGolem::GetPos() const
-{
-    return transform_.pos;
-}
-
-VECTOR EnemyGolem::GetCapsuleTop() const
-{
-    return VAdd(movedPos_, capsuleTopLocal_);
-}
-
-VECTOR EnemyGolem::GetCapsuleBottom() const
-{
-    return VAdd(movedPos_, capsuleBottomLocal_);
-}
-
-float EnemyGolem::GetRadius() const
-{
-    return capsule_ ? capsule_->GetRadius() : 0.0f;
 }
 
 void EnemyGolem::SetCannon(std::shared_ptr<CannonBase> cannon)

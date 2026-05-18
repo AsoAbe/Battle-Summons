@@ -42,7 +42,6 @@ public:
 	enum class EFFECT
 	{
 		NONE,
-		HEAL,
 		SHOT,
 		CANNON,
 		MONSTER
@@ -77,7 +76,7 @@ public:
 	void UseCard(EFFECT effectId);
 
 protected:
-
+	
 	// 静的インスタンス
 	static CardManager* instance_;
 	// 単発カード（Healなど）
@@ -91,7 +90,7 @@ protected:
 
 	//プレイヤー
 	std::shared_ptr<Player> player_;
-
+	
 	std::shared_ptr<EnemyGolem> enemy_;
 
 	int cardImgBr_;
@@ -106,7 +105,6 @@ protected:
 
 	//カードの共通効果
 	int Damage_;
-	int Heal_;
 	float speed_;
 
 	bool cardUsedThisFrame_;
@@ -123,7 +121,6 @@ protected:
 	EFFECT currentEffect_ = EFFECT::SHOT;
 
 	// 効果アイコン
-	int iconHeal_ = -1;
 	int iconShot_ = -1;
 	int iconCannon_ = -1;
 	int iconMonster_ = -1;
@@ -136,7 +133,7 @@ protected:
 	};
 
 	std::vector<CardUI> cardList_;
-	void LoadIcons();
+	void LoadIcons(); 
 	void DrawCardIcon();
 };
 

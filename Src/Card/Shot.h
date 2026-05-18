@@ -7,7 +7,7 @@
 class EnemyGolem;
 
 class Shot :
-	public ShotBase
+    public ShotBase
 {
 public:
 	//弾の基本速度
@@ -47,7 +47,7 @@ public:
 private:
 	// 弾を発射するプレイヤー
 	std::shared_ptr<Player> player_;
-
+	
 	std::shared_ptr<EnemyGolem> enemy_;
 
 	//ダメージ処理

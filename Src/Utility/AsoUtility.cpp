@@ -553,4 +553,11 @@ void AsoUtility::DrawLineXYZ(const VECTOR& pos, const Quaternion& rot, float len
 
 }
 
+float AsoUtility::Clamp(float v, float minV, float maxV)
+{
+    if (v < minV) return minV;
+    if (v > maxV) return maxV;
+    return v;
+}
+
 

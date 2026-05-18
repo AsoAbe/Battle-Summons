@@ -61,7 +61,8 @@ public:
 		WARP_PAUSE,
 		FLY,
 		FALLING,
-		VICTORY
+		VICTORY,
+		DEAD
 	};
 
 	// コンストラクタ
@@ -75,10 +76,6 @@ public:
 	void Draw(void) override;
 	bool Release() override;
 
-	// 衝突判定に用いられるコライダ制御
-	void AddCollider(std::weak_ptr<Collider> collider);
-	void ClearCollider(void);
-
 	// 衝突用カプセルの取得
 	const Capsule& GetCapsule(void) const;
 
@@ -91,10 +88,11 @@ public:
 
 	/// 死亡時の処理
 /// </summary>
-	void Died();
+	void Died(float delta);
 
 	// 無敵時間更新
 	void UpdateInvincible(float deltaTime);
+
 	// 生存判定
 	bool IsAlive() const;
 
@@ -108,7 +106,7 @@ public:
 
 	VECTOR GetPos();
 	VECTOR GetRot();
-	float GetRadius()const;
+	
 	VECTOR GetForward() const;
 
 	void PlayAnimation(ANIM_TYPE animType, bool loop = false, float startFrame = 0.0f, float endFrame = 40.0f);
@@ -139,11 +137,11 @@ private:
 	// 移動方向
 	VECTOR moveDir_;
 
-	// 移動量
-	VECTOR movePow_;
+	//// 移動量
+	//VECTOR movePow_;  　　//CharacterBaseにある
 
-	// 移動後の座標
-	VECTOR movedPos_;
+	//// 移動後の座標
+	//VECTOR movedPos_;　　//CharacterBaseにある
 
 	// 回転
 	Quaternion playerRotY_;
@@ -151,7 +149,7 @@ private:
 	float stepRotTime_;
 
 	// ジャンプ量
-	VECTOR jumpPow_;
+	//VECTOR jumpPow_;
 
 //体力関係---------
 	// 
@@ -166,7 +164,29 @@ private:
 	//無敵時間
 	float invincibleTimer_;
 	bool alive_;
+	//持続回復
+	void UpdateRegen(float delta);
+
+	void UpdateDead();
+
+	float regenTimer_ = 0.0f;
+	float regenInterval_ = 1.0f;   // 1秒ごと
+	int   regenAmount_ = 5;        // 1回の回復量
+
+	// エフェクト関連
+	int HealEffectHandle_ = -1;      // リソースハンドル
+	int HealEffectPlayId_ = -1;      // 再生中のID
+	bool isHealEffectPlaying_ = false;  // 再生フラグ
+	void PlayHealEffect(void);
+	void StopHealEffect(void);
 //--------------------------------------
+
+	//死亡関連
+	float deadTimer_ = 0.0f;
+	float deadDelay_ = 2.5f;     // ゴーレムと同じ
+	bool gameOverReserved_ = false;
+	bool isDead_ = false;
+
 	// ジャンプ判定
 	bool isJump_;
 
@@ -185,13 +205,14 @@ private:
 	// 弾リスト
 	std::vector<std::unique_ptr<Shot>> shots_;
 
-	// 衝突判定に用いられるコライダ
-	std::vector<std::weak_ptr<Collider>> colliders_;
-	std::unique_ptr<Capsule> capsule_;
+	//// 衝突判定に用いられるコライダ
+	//std::vector<std::weak_ptr<Collider>> colliders_;  //CharacterBaseにあるので使わない
+	// 
+	//std::unique_ptr<Capsule> capsule_;　　　　　　　　//CharacterBaseにある
 
 	// 衝突チェック
-	VECTOR gravHitPosDown_;
-	VECTOR gravHitPosUp_;
+	/*VECTOR gravHitPosDown_;		//CharacterBaseにある
+	VECTOR gravHitPosUp_;*/			//CharacterBaseにある
 
 	// 丸影
 	int imgShadow_;
@@ -202,6 +223,7 @@ private:
 	void ChangeState(STATE state);
 	void ChangeStateNone(void);
 	void ChangeStatePlay(void);
+	void ChangeStateDead();
 
 	// 更新ステップ
 	void UpdateNone(void);
@@ -218,13 +240,16 @@ private:
 	void SetGoalRotate(double rotRad);
 	void Rotate(void);
 
-	// 衝突判定
-	void Collision(void);
-	void CollisionGravity(void);
-	void CollisionCapsule(void);
+	//// 衝突判定
+	//void Collision(void);          |
+	//void CollisionGravity(void);   |
+	//void CollisionCapsule(void);   |
+	//                               |   //CharacterBaseにある
+	//// 移動量の計算                | 
+	//void CalcGravityPow(void);     |
 
-	// 移動量の計算
-	void CalcGravityPow(void);
+	//地面に接地した場合のジャンプ処理
+	void OnLanding(const MV1_COLL_RESULT_POLY& hit);
 
 	// 着地モーション終了
 	bool IsEndLanding(void);

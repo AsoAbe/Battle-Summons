@@ -152,7 +152,7 @@ void CannonBase::Update(void)
 		break;
 	}
 
-	prevPos_ = pos_;
+		prevPos_ = pos_;
 
 }
 
@@ -191,7 +191,7 @@ void CannonBase::UpdateShot(void)
 
 	//位置の設定
 	MV1SetPosition(modelId_, pos_);
-
+	
 	// カプセルを更新
 	UpdateCapsulePos();
 
@@ -207,7 +207,7 @@ void CannonBase::UpdateBlast(void)
 
 	// 爆発時間を加算
 	blastTimer_ += SceneManager::GetInstance().GetDeltaTime();
-
+	
 	// 1回だけ爆風ダメージ判定
 	if (!hasDealtDamage_)
 	{
@@ -247,7 +247,7 @@ void CannonBase::CheckBlastDamage()
 	case CARD_RARITY::BRONZE: DamageRate = 1.0f; break;
 	case CARD_RARITY::SILVER: DamageRate = 1.5f; break;
 	case CARD_RARITY::GOLD:   DamageRate = 2.0f; break;
-	}
+	}	
 	// Player ダメージ
 	if (!player_.expired())
 	{
@@ -258,7 +258,7 @@ void CannonBase::CheckBlastDamage()
 		{
 			player->Damage(static_cast<int>(Damage_ * DamageRate));
 		}
-	}
+	}	
 	if (!enemy_.expired())
 	{
 		auto enemy = enemy_.lock();
@@ -300,7 +300,7 @@ void CannonBase::Draw()
 	default:
 		break;
 	}
-	DrawEffekseer3D();
+	  DrawEffekseer3D();
 
 }
 
@@ -443,26 +443,26 @@ void CannonBase::Colliders(void)
 void CannonBase::PlayBlastEffect()
 {
 	switch (rarity_)
-	{
-	case CARD_RARITY::BRONZE:
-		SoundManager::GetInstance().PlaySE(SoundManager::SOUND_ID::BLAST_S,
+    {
+    case CARD_RARITY::BRONZE:
+        SoundManager::GetInstance().PlaySE(SoundManager::SOUND_ID::BLAST_S,
 			true,   // ← load を true
 			SoundManager::VOLUME_STANDARD
 		);
-		break;
-	case CARD_RARITY::SILVER:
-		SoundManager::GetInstance().PlaySE(SoundManager::SOUND_ID::BLAST_M,
+        break;
+    case CARD_RARITY::SILVER:
+        SoundManager::GetInstance().PlaySE(SoundManager::SOUND_ID::BLAST_M,
 			true,   // ← load を true
 			SoundManager::VOLUME_STANDARD
 		);
-		break;
-	case CARD_RARITY::GOLD:
-		SoundManager::GetInstance().PlaySE(SoundManager::SOUND_ID::BLAST_L,
+        break;
+    case CARD_RARITY::GOLD:
+        SoundManager::GetInstance().PlaySE(SoundManager::SOUND_ID::BLAST_L,
 			true,   // ← load を true
 			SoundManager::VOLUME_STANDARD
 		);
-		break;
-	}
+        break;
+    }
 
 	//エフェクト再生
 	blastEffectPlayId_ = PlayEffekseer3DEffect(blastEffectHandle_);

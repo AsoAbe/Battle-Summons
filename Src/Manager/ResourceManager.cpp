@@ -45,7 +45,6 @@ void ResourceManager::Init(void)
 	resourcesMap_.emplace(SRC::SPEECH_BALLOON, std::move(res));
 	
 	// プレイヤー
-	//res = std::make_unique<RES>(RES_T::MODEL, PATH_MDL + "Player/player.mv1");
 	res = std::make_unique<RES>(RES_T::MODEL, PATH_MDL + "Player/Vampire.mv1");
 	resourcesMap_.emplace(SRC::PLAYER, std::move(res));
 
@@ -176,6 +175,10 @@ void ResourceManager::Init(void)
 	//Golemのタックルチャージ
 	res = std::make_unique<RES>(RES_T::EFFEKSEER, PATH_EFF + "chargingOrn.efkefc");
 	resourcesMap_.emplace(SRC::TACKLE_CHARGE, std::move(res));
+	
+	//回復
+	res = std::make_unique<RES>(RES_T::EFFEKSEER, PATH_EFF + "Heal.efkefc");
+	resourcesMap_.emplace(SRC::HEAL, std::move(res));
 
 }
 

@@ -40,7 +40,7 @@ void InputManager::Init(void)
 	InputManager::GetInstance().Add(KEY_INPUT_S);
 	InputManager::GetInstance().Add(KEY_INPUT_D);
 
-
+	
 	//デバッグ
 	InputManager::GetInstance().Add(KEY_INPUT_E); //体力増やす
 	InputManager::GetInstance().Add(KEY_INPUT_Q); //体力減らす
@@ -262,7 +262,7 @@ InputManager::JOYPAD_IN_STATE InputManager::GetJPadInputState(JOYPAD_NO no)
 	JOYPAD_IN_STATE ret = JOYPAD_IN_STATE();
 
 	auto type = GetJPadType(no);
-
+	
 	switch (type)
 	{
 	case InputManager::JOYPAD_TYPE::OTHER:
@@ -270,7 +270,7 @@ InputManager::JOYPAD_IN_STATE InputManager::GetJPadInputState(JOYPAD_NO no)
 	case InputManager::JOYPAD_TYPE::XBOX_360:
 	{
 	}
-	break;
+		break;
 	case InputManager::JOYPAD_TYPE::XBOX_ONE:
 	{
 
@@ -304,18 +304,18 @@ InputManager::JOYPAD_IN_STATE InputManager::GetJPadInputState(JOYPAD_NO no)
 		// 左スティック
 		ret.AKeyLX = d.X;
 		ret.AKeyLY = d.Y;
-
+		
 		// 右スティック
 		ret.AKeyRX = d.Rx;
 		ret.AKeyRY = d.Ry;
 
 	}
-	break;
+		break;
 	case InputManager::JOYPAD_TYPE::DUAL_SHOCK_4:
 		break;
 	case InputManager::JOYPAD_TYPE::DUAL_SENSE:
 	{
-
+		
 		auto d = GetJPadDInputState(no);
 		int idx;
 
@@ -338,13 +338,13 @@ InputManager::JOYPAD_IN_STATE InputManager::GetJPadInputState(JOYPAD_NO no)
 		// 左スティック
 		ret.AKeyLX = d.X;
 		ret.AKeyLY = d.Y;
-
+		
 		// 右スティック
 		ret.AKeyRX = d.Z;
 		ret.AKeyRY = d.Rz;
 
 	}
-	break;
+		break;
 	case InputManager::JOYPAD_TYPE::SWITCH_JOY_CON_L:
 		break;
 	case InputManager::JOYPAD_TYPE::SWITCH_JOY_CON_R:

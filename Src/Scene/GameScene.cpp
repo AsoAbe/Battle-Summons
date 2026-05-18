@@ -153,7 +153,7 @@ void GameScene::Update(void)
 	// シーン遷移
 	InputManager& ins = InputManager::GetInstance();
 
-	if (ins.IsTrgDown(KEY_INPUT_RSHIFT))
+	if (ins.IsTrgDown(KEY_INPUT_BACK))
 	{
 		SceneManager::GetInstance().ChangeScene(SceneManager::SCENE_ID::GAMEOVER);
 	}
@@ -322,6 +322,13 @@ void GameScene::LoadSceneGameSound()
 
 bool GameScene::Release(void)
 {
+
+	player_->Release();
+
+	enemy_->Release();
+
+	card_->Release();
+
 	return true;
 }
 

@@ -8,7 +8,7 @@ class Capsure;
 class CannonBase :
 	public CardBase
 {
-public:
+	public:
 
 	//衝突判定用の球体半径
 	static constexpr float COL_RADIUS = 10.0f;
@@ -22,7 +22,7 @@ public:
 
 	//基本ダメージ
 	static constexpr int DEFAULT_DAMAGE = 30;
-
+	
 	//プレイヤーへのダメージ倍率
 	static constexpr float PLAYER_DAMAGE_RATE = 0.5f;
 
@@ -37,7 +37,7 @@ public:
 	//モデルのスケール倍率
 	static constexpr float MODEL_SCALE = 1.8f;
 	//-----------------------------------------------------------
-
+	
 	//爆発関連-------------------------------------------------------
 	//当たり判定の範囲
 	static constexpr float DEFAULT_BLAST_RADIUS = 200.0f;
@@ -48,7 +48,7 @@ public:
 	//持続時間
 	static constexpr float BLAST_DURATION = 0.4f;
 	//-------------------------------------------------------------
-
+	
 	// 弾の状態
 	enum class STATE
 	{
@@ -108,7 +108,7 @@ public:
 	int GetExplosionDamage() const;
 	bool HasDealtDamage() const;
 	void MarkDamageDealt();
-
+	
 	//強制ストップ
 	void StopEffect();
 protected:
@@ -116,7 +116,7 @@ protected:
 	// 衝突判定に用いられるコライダ
 	std::vector<std::weak_ptr<Collider>> colliders_;
 	std::unique_ptr<Capsule> capsule_;
-
+	
 	// 弾の状態
 	STATE state_;
 
@@ -143,7 +143,7 @@ protected:
 	float gravityPow_;
 
 	//爆発関係
-	int blastEffectHandle_;
+	int blastEffectHandle_; 
 	int blastEffectPlayId_;
 	float blastTimer_ = 0.0f;      // 爆発経過時間
 	const float blastDuration_;
@@ -162,7 +162,7 @@ protected:
 	void CheckHitSphere();
 
 	bool Fired_;
-
+	
 	// 前フレーム位置（高速弾のすり抜け対策で使用）
 	VECTOR prevPos_;
 	float bulletRadius_;    // 弾の半径

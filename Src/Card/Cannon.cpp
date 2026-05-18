@@ -10,7 +10,7 @@
 #include "Cannon.h"
 #pragma message(">>> Included Stage.h from: " __FILE__)
 Cannon::Cannon(std::shared_ptr<Player> player, std::weak_ptr<EnemyGolem> enemy)
-	: CannonBase(0, 0), player_(player), enemy_(enemy)
+	: CannonBase(0, 0),player_(player),enemy_(enemy)
 {
 	size_ = 0.8f;
 
@@ -88,7 +88,7 @@ bool Cannon::Init(void)
 	barrelRot_ = { -0.5f,0.0f,0.0f };
 	barrelRot_.y = player_->GetRot().y;
 	//–Cg‚ÌÀ•W
-	barrelLocalPos_ = { 0.0f,BARREL_HEIGHT * DamageRate,0.0f };
+	barrelLocalPos_ = { 0.0f,BARREL_HEIGHT *DamageRate,0.0f };
 
 	// VECTOR“¯m‚Ì‰ÁZ VAddŠÖ”
 	barrelPos_ = VAdd(standPos_, barrelLocalPos_);
@@ -104,7 +104,7 @@ bool Cannon::Init(void)
 
 	// ”š”­ƒGƒtƒFƒNƒg“Ç‚İ‚İ
 	blastEffect_ = ResourceManager::GetInstance().Load(
-		ResourceManager::SRC::CANNON_BLAST).handleId_;
+			ResourceManager::SRC::CANNON_BLAST).handleId_;
 
 	//‰Šúİ’è‚ğƒ‚ƒfƒ‹‚É”½‰f
 	Update();
@@ -140,7 +140,7 @@ void Cannon::Update(void)
 
 void Cannon::Draw(void)
 {
-
+	
 	// –C‘ä‚Ìƒ‚ƒfƒ‹•`‰æ
 	MV1DrawModel(standModelId_);
 
@@ -157,7 +157,7 @@ void Cannon::Draw(void)
 
 bool Cannon::Release(void)
 {
-
+	
 	shots_.clear();   // Update ‘¤‚Å delete Ï‚İ
 
 	return true;
@@ -225,7 +225,7 @@ void Cannon::ProcessShot(void)
 		}
 
 		stepShotDelay_ = SHOT_DELAY;
-		//Œ‚‚Á‚½uŠÔ‚¾‚¯ true
+	    //Œ‚‚Á‚½uŠÔ‚¾‚¯ true
 		Fired_ = true;
 	}
 
@@ -251,15 +251,15 @@ void Cannon::UpdateLifeTime()
 
 void Cannon::UpdateTransform()
 {
-	// –C‘ä
-	MV1SetScale(standModelId_, standScl_);
-	MV1SetRotationXYZ(standModelId_, standRot_);
-	MV1SetPosition(standModelId_, standPos_);
+    // –C‘ä
+    MV1SetScale(standModelId_, standScl_);
+    MV1SetRotationXYZ(standModelId_, standRot_);
+    MV1SetPosition(standModelId_, standPos_);
 
-	// –Cg
-	MV1SetScale(barrelModelId_, barrelScl_);
-	MV1SetRotationXYZ(barrelModelId_, barrelRot_);
-	MV1SetPosition(barrelModelId_, barrelPos_);
+    // –Cg
+    MV1SetScale(barrelModelId_, barrelScl_);
+    MV1SetRotationXYZ(barrelModelId_, barrelRot_);
+    MV1SetPosition(barrelModelId_, barrelPos_);
 }
 
 CannonBase* Cannon::GetValidShot(void)

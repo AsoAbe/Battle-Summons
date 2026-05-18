@@ -35,6 +35,8 @@ TitleScene::TitleScene(void)
 	skyDome_ = nullptr;
 	animationController_ = nullptr;
 
+	pushAlpha_ = 0.0f;
+	pushAlphaDir_ = 0.0f;
 }
 
 TitleScene::~TitleScene(void)
@@ -96,6 +98,10 @@ void TitleScene::Init(void)
 		true,
 		SoundManager::VOLUME_BGM
 	);
+
+	//Startを点滅
+	pushAlpha_ = 255.0f;
+	pushAlphaDir_ = -1.0f;
 }
 
 void TitleScene::Update(void)
@@ -105,6 +111,8 @@ void TitleScene::Update(void)
 	InputManager& ins = InputManager::GetInstance();
 	if (ins.IsTrgDown(KEY_INPUT_SPACE))
 	{
+		//Player生存判定初期化
+		SceneManager::GetInstance().SetPlayerAlive(true);
 		SoundManager::GetInstance().PlaySE(
 			SoundManager::SOUND_ID::SUCCESS,
 			true,
@@ -123,6 +131,20 @@ void TitleScene::Update(void)
 
 	skyDome_->Update();
 
+	// --- PUSH SPACE 点滅 ---
+	pushAlpha_ += pushAlphaDir_ * 2.0f;   // 数値小さいほどゆっくり
+
+	if (pushAlpha_ <= 50.0f)
+	{
+		pushAlpha_ = 50.0f;
+		pushAlphaDir_ = 1.0f;    // フェードインへ
+	}
+	else if (pushAlpha_ >= 255.0f)
+	{
+		pushAlpha_ = 255.0f;
+		pushAlphaDir_ = -1.0f;   // フェードアウトへ
+	}
+
 }
 
 void TitleScene::Draw(void)
@@ -135,8 +157,17 @@ void TitleScene::Draw(void)
 	MV1DrawModel(charactor_.modelId);
 
 	DrawRotaGraph(Application::SCREEN_SIZE_X / 2, 350, 0.7, 0.0, imgTitle_, true);
-	DrawRotaGraph(Application::SCREEN_SIZE_X / 2, 500, 1.0, 0.0, imgPush_, true);
-
+	
+	SetDrawBlendMode(DX_BLENDMODE_ALPHA, (int)pushAlpha_);
+	DrawRotaGraph(
+		Application::SCREEN_SIZE_X / 2,
+		500,
+		1.0,
+		0.0,
+		imgPush_,
+		true
+	);
+	SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
 }
 
 bool TitleScene::Release(void)

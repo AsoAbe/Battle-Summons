@@ -60,4 +60,6 @@ private:
 	int bgmtamesi_;
 	//void bgmCountUpdat();
 
+	float pushAlpha_;     // 0.0 ` 255.0
+	float pushAlphaDir_;  // •Ï‰»•ûŒü
 };
