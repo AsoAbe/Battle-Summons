@@ -58,20 +58,20 @@ void TitleScene::Init(void)
 
 	float size;
 
-	// ÉÅÉCÉìòfêØ
-	planet_.SetModel(resMng_.LoadModelDuplicate(ResourceManager::SRC::FALL_PLANET));
-	planet_.pos = AsoUtility::VECTOR_ZERO;
-	planet_.scl = AsoUtility::VECTOR_ONE;
-	planet_.Update();
+	//// ÉÅÉCÉìòfêØ
+	//planet_.SetModel(resMng_.LoadModelDuplicate(ResourceManager::SRC::FALL_PLANET));
+	//planet_.pos = AsoUtility::VECTOR_ZERO;
+	//planet_.scl = AsoUtility::VECTOR_ONE;
+	//planet_.Update();
 
-	// âÒì]Ç∑ÇÈòfêØ
-	movePlanet_.SetModel(resMng_.LoadModelDuplicate(ResourceManager::SRC::LAST_PLANET));
-	movePlanet_.pos = { -250.0f, -100.0f, -100.0f };
-	size = 0.7f;
-	movePlanet_.scl = { size, size, size };
-	movePlanet_.quaRotLocal = Quaternion::Euler(
-		AsoUtility::Deg2RadF(90.0f), 0.0f, 0.0f);
-	movePlanet_.Update();
+	//// âÒì]Ç∑ÇÈòfêØ
+	//movePlanet_.SetModel(resMng_.LoadModelDuplicate(ResourceManager::SRC::LAST_PLANET));
+	//movePlanet_.pos = { -250.0f, -100.0f, -100.0f };
+	//size = 0.7f;
+	//movePlanet_.scl = { size, size, size };
+	//movePlanet_.quaRotLocal = Quaternion::Euler(
+	//	AsoUtility::Deg2RadF(90.0f), 0.0f, 0.0f);
+	//movePlanet_.Update();
 
 	// ÉLÉÉÉâ
 	charactor_.SetModel(resMng_.LoadModelDuplicate(ResourceManager::SRC::PLAYER));

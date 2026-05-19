@@ -21,27 +21,11 @@ public:
 		SKY_DOME,
 		MAIN_PLANET,
 		MAIN_PLANET2,
-		FALL_PLANET,
-		FLAT_PLANET_01,
-		FLAT_PLANET_02,
-		LAST_PLANET,
-		STONE_WALL,
-		WHITE_WALL,
-		SPECIAL_PLANET,
 		FOOT_SMOKE,
 		WARP_STAR,
 		WARP_STAR_ROT_EFF,
 		WARP_ORBIT,
-		BLACK_HOLE,
-		GOAL_STAR,
 		CLEAR,
-		TANK_BODY,
-		TANK_BARREL,
-		TANK_WHEEL,
-		MOON,
-		SHIELD,
-		AXE,
-		WATER,
 		SHOT_EXPLOSION,
 		SHOT_MODEL,
 		CANNON_STAND,
@@ -82,7 +66,7 @@ private:
 	std::map<SRC, std::unique_ptr<Resource>> resourcesMap_;
 
 	// ì«Ç›çûÇ›çœÇ›ÉäÉ\Å[ÉX
-	std::map<SRC, Resource&> loadedMap_;
+	std::map<SRC, Resource*> loadedMap_;
 
 	Resource dummy_;
 

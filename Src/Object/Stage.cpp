@@ -45,9 +45,6 @@ void Stage::Init(void)
 	MakeMainStage();
 	MakeWarpStar();
 
-	//StoneWall();
-	//WhiteWall();
-
 	step_ = -1.0f;
 }
 
@@ -167,56 +164,6 @@ void Stage::MakeWarpStar(void)
 	star = std::make_unique<WarpStar>(player_, trans);
 	star->Init();
 	warpStars_.push_back(std::move(star));
-	//------------------------------------------------------------------------------
-
-}
-
-//石壁
-void Stage::StoneWall(void)
-{
-	Transform planetTrans;
-	planetTrans.SetModel(
-		resMng_.LoadModelDuplicate(ResourceManager::SRC::STONE_WALL));
-	planetTrans.scl = AsoUtility::VECTOR_ONE;
-	planetTrans.quaRot = Quaternion();
-	planetTrans.pos = { 0.0f, -100.0f, 0.0f };
-
-	// 当たり判定(コライダ)作成
-	planetTrans.MakeCollider(Collider::TYPE::WALL);
-
-	planetTrans.Update();
-
-	NAME name = NAME::STONE_WALL;
-	std::shared_ptr<Planet> planet =
-		std::make_shared<Planet>(
-			name, Planet::TYPE::GROUND, planetTrans);
-	planet->Init();
-	planets_.emplace(name, std::move(planet));
-	//------------------------------------------------------------------------------
-
-}
-
-//透明な壁
-void Stage::WhiteWall(void)
-{
-	Transform planetTrans;
-	planetTrans.SetModel(
-		resMng_.LoadModelDuplicate(ResourceManager::SRC::WHITE_WALL));
-	planetTrans.scl = AsoUtility::VECTOR_ONE;
-	planetTrans.quaRot = Quaternion();
-	planetTrans.pos = { 0.0f, -100.0f, 0.0f };
-
-	// 当たり判定(コライダ)作成
-	planetTrans.MakeCollider(Collider::TYPE::WALL);
-
-	planetTrans.Update();
-
-	NAME name = NAME::WHITE_WALL;
-	std::shared_ptr<Planet> planet =
-		std::make_shared<Planet>(
-			name, Planet::TYPE::GROUND, planetTrans);
-	planet->Init();
-	planets_.emplace(name, std::move(planet));
 	//------------------------------------------------------------------------------
 
 }

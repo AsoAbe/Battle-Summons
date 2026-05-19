@@ -33,7 +33,6 @@
     <ClCompile Include="Src\Card\CardBase.cpp" />
     <ClCompile Include="Src\Manager\CardManager.cpp" />
     <ClCompile Include="Src\Scene\GameOverScene.cpp" />
-    <ClCompile Include="Src\Object\Metal.cpp" />
     <ClCompile Include="Src\Renderer\ModelMaterial.cpp" />
     <ClCompile Include="Src\Renderer\ModelRenderer.cpp" />
     <ClCompile Include="Src\Renderer\PixelRenderer.cpp" />
@@ -63,7 +62,6 @@
     <ClCompile Include="Src\Scene\SceneBase.cpp" />
     <ClCompile Include="Src\Scene\TitleScene.cpp" />
     <ClCompile Include="Src\Utility\AsoUtility.cpp" />
-    <ClCompile Include="Src\Object\Water.cpp" />
     <ClCompile Include="Src\Common\trans.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -81,7 +79,6 @@
     <ClInclude Include="Src\Card\CardBase.h" />
     <ClInclude Include="Src\Manager\CardManager.h" />
     <ClInclude Include="Src\Scene\GameOverScene.h" />
-    <ClInclude Include="Src\Object\Metal.h" />
     <ClInclude Include="Src\Renderer\ModelMaterial.h" />
     <ClInclude Include="Src\Renderer\ModelRenderer.h" />
     <ClInclude Include="Src\Renderer\PixelRenderer.h" />
@@ -111,7 +108,6 @@
     <ClInclude Include="Src\Scene\SceneBase.h" />
     <ClInclude Include="Src\Scene\TitleScene.h" />
     <ClInclude Include="Src\Utility\AsoUtility.h" />
-    <ClInclude Include="Src\Object\Water.h" />
     <ClInclude Include="Src\Common\trans.h" />
   </ItemGroup>
   <ItemGroup>
