@@ -26,9 +26,78 @@ public:
     //最大体力
     static constexpr float MAX_HP = 300.0f;
     
+    //重力
     static constexpr float POW_GRAVITY = 10.0f;
 
+	//一秒間の分割回数
     static constexpr float DEFAULT_FPS = 60.0f;
+   
+    // 死亡後ゲームオーバー遅延
+    static constexpr float DEAD_DELAY_TIME = 2.5f;
+
+    // チャージエフェクト高さ
+    static constexpr float CHARGE_EFFECT_HEIGHT = 50.0f;
+
+    // ベクトル正規化最小値
+    static constexpr float NORMALIZE_MIN_LENGTH = 0.0001f;
+
+    //色の最大値
+	static constexpr float COLOR_MAX = 255.0f;
+
+    // 回転補間速度
+    static constexpr float ROTATE_SPEED = 5.0f;
+    
+    //移動関連
+    static constexpr float DEFAULT_MOVE_SPEED = 4.5f;   // 通常移動速度
+    static constexpr float DISCOVER_DISTANCE = 400.0f;  // プレイヤー発見距離
+    static constexpr float MOVE_DISTANCE = 200.0f;      // プレイヤー接近停止距離
+    static constexpr float ROTATE_LERP_SPEED = 0.1f;    // 回転補間速度
+    static constexpr float MIN_MOVE_DISTANCE = 0.001f;  // 最小移動判定距離
+    
+    // 通常攻撃関連------------------------------------
+    static constexpr int ATTACK_DAMAGE = 20;                 // 攻撃ダメージ
+    static constexpr float ATTACK_HIT_START = 0.4f;          // 攻撃判定開始時間
+    static constexpr float ATTACK_HIT_END = 0.6f;            // 攻撃判定終了時間
+    static constexpr float ATTACK_FORWARD_OFFSET = 120.0f;   // 攻撃前方距離
+    static constexpr float ATTACK_HEIGHT_OFFSET = 70.0f;     // 攻撃高さ
+    static constexpr float ATTACK_RADIUS = 140.0f;           // 攻撃半径
+    static constexpr float ATTACK_DISTANCE = 200.0f;         // 攻撃状態へ切り替える距離
+
+    // タックル関連-----------------------------------
+    static constexpr int TACKLE_DAMAGE = 20;                 // タックルダメージ
+    static constexpr float TACKLE_START_SPEED = 25.0f;       // タックル初速
+    static constexpr float TACKLE_DECELERATION = 1.0f;       // タックル減速量
+    static constexpr float TACKLE_PASS_DOT = -200.0f;        // プレイヤー通過判定
+    static constexpr float TACKLE_HEIGHT_OFFSET = 50.0f;     // タックル接触高さ
+    static constexpr float DEFAULT_TACKLE_SPEED = 25.0f;     // 突進速度
+    static constexpr float DEFAULT_CHARGE_TIME = 0.7f;       // チャージ時間
+    static constexpr float DEFAULT_RUN_TIME = 1.2f;          // 継続時間
+    static constexpr float DEFAULT_TACKLE_RADIUS = 120.0f;   // 攻撃判定半径
+    static constexpr float TACKLE_START_DISTANCE = 800.0f;   // 開始する距離
+    static constexpr float CHARGE_EFFECT_SCALE = 30.0f;      // タックルチャージエフェクト拡大率
+    //--------------------------------------------------------------
+    
+    //カプセル関連-------------------------------------------
+    static constexpr float LAND_CAPSULE_TOP_Y = 200.0f;    // 上端位置(地面判定用)
+    static constexpr float LAND_CAPSULE_BOTTOM_Y = 90.0f;  // 下端位置(地面判定用)
+    static constexpr float CAPSULE_TOP_Y = 200.0f;    // 上端位置(攻撃を受ける判定)
+    static constexpr float CAPSULE_BOTTOM_Y = 20.0f;  // 下端位置(攻撃を受ける判定)
+    static constexpr float CAPSULE_RADIUS = 60.0f;    // 半径
+    //----------------------------------------------------------------
+
+    // 影描画設定-------------------------------------------
+    static constexpr float SHADOW_HEIGHT = 300.0f;    //地面探索高さ
+    static constexpr float SHADOW_SIZE = 120.0f;      //サイズ
+    static constexpr float SHADOW_SLIDE_SCALE = 0.5f; //影ポリゴン浮かせ量
+    static constexpr float SHADOW_ALPHA_MAX = 128.0f; //影アルファ最大値
+    static constexpr float SHADOW_UV_SCALE = 2.0f;    //UV計算用の影サイズ倍率
+    static constexpr float SHADOW_UV_OFFSET = 0.5f;   //UV中央オフセット
+    //-------------------------------------------------------------
+    
+    // 着地・押し出し関連------------------------------
+    static constexpr float LAND_OFFSET_Y = 2.0f;    // 着地時の地面からの浮かせ量
+    static constexpr float WALL_PUSH_POWER = 1.0f;  // 壁押し出し量
+ 
 
     // 状態定義
     enum class STATE
@@ -75,10 +144,6 @@ public:
     // プレイヤー取得
     std::shared_ptr<Player> GetPlayer() const;
 
-    //// 衝突判定に用いられるコライダ制御
-    //void AddCollider(std::weak_ptr<Collider> collider);
-    //void ClearCollider(void);
-    
 	// 衝突用カプセルの取得
 	const Capsule& GetCapsule(void) const;
 
@@ -86,17 +151,6 @@ public:
     void SetPlayer(std::shared_ptr<Player> player);
     void SetCannon(std::shared_ptr<CannonBase> cannon);
     std::weak_ptr<CannonBase> GetCannonWeakPtr() const;
-
-
-    //CharacterBaseにある-----------------
-    //VECTOR GetPos() const;
-    ////VECTOR GetRot();
-    ////カプセル取得用
-    //VECTOR GetCapsuleTop() const;
-    //VECTOR GetCapsuleBottom() const;
-    //float GetRadius()const;
-
-    //VECTOR GetColPos() const;
 
 private:
     // シーン参照
@@ -112,13 +166,8 @@ private:
 
     STATE state_;                                            // 現在の状態
     std::unordered_map<STATE, std::function<void()>> stateChanges_; // 状態遷移表
-    //std::unordered_map<TACKLE, std::function<void()>> TacklestateChanges_; // 状態遷移表
     std::function<void()> stateUpdate_;                      // 現在の更新関数
-                                                 
-    //// 衝突判定に用いられるコライダ
-    //std::vector<std::weak_ptr<Collider>> colliders_;
-    //std::unique_ptr<Capsule> capsule_;
-
+     
     float moveSpeed_;        // 移動速度
     float attackRange_;      // 攻撃範囲
     float attackTimer_;      // 攻撃クールタイム
@@ -127,7 +176,7 @@ private:
     //後隙用
     float EndTime_;
 
-    // -----------------------------
+
 // タックル関連
 // -----------------------------
     bool isTackling_;          // タックル中か
@@ -146,7 +195,8 @@ private:
 
     VECTOR tackleDir_ = VGet(0, 0, 0);     // 突進方向
     VECTOR tackleGoal_ = VGet(0, 0, 0);    // 突進終了地点
-
+    // ------------------------------------------------------------
+    
     // エフェクト関連
     int chargeEffectHandle_ = -1;         // リソースハンドル
     int chargeEffectPlayId_ = -1;         // 再生中のID
@@ -167,22 +217,12 @@ private:
     bool gameOverReserved_ = false;
 
     // 移動量
-    //VECTOR movePow_;   //CharacterBaseにある
     VECTOR moveDir_;    
    
     //キャラごとの位置調整
     float capsuleOffsetY;
     float footOffsetY;
     VECTOR prevPos_;
-
-    // ジャンプ判定
-    //bool isJump_;            //CharacterBaseにある
-    // ジャンプの入力受付時間
-    //float stepJump_;
-
-    // 衝突チェック
-    //VECTOR gravHitPosDown_;  //CharacterBaseにある
-    //VECTOR gravHitPosUp_;
 
     //地面に接地した場合のジャンプ処理
     void OnLanding(const MV1_COLL_RESULT_POLY& hit);
@@ -197,19 +237,11 @@ private:
     float stepRotTime_;        // 移動方向
 
     bool attackHitDone_;        // 判定が有効かどうか、通常攻撃用
-    //bool isAttackHitActive_;    // 判定が有効かどうか,汎用
     float attackHitStartTime_;  // 攻撃判定開始時間
     float attackHitEndTime_;    // 攻撃判定終了時間
     float chargeStartTime_;     // チャージ時間
 
     bool EnemyStart_ = false;
-
-
-    //重力関係
-    //VECTOR jumpPow_;        // 重力・落下ベクトル&移動後の座標 |
-    //VECTOR movedPos_;       // 衝突後の補正済み座標            | //CharacterBaseにある
-    //float gravity_;         // 重力加速度                      |
-    //bool isGround_;         // 地面についているか              |
 
     // 内部更新
     void ChangeState(STATE state);
@@ -251,15 +283,6 @@ private:
     );    
     void DeactivateAttackHit();
     VECTOR debugAttackPos_;
-    //void CheckTackleStart();
-
-    // 衝突判定
-    //void Collision(void);        //|
-    //void CollisionGravity(void); //|
-    //void CollisionCapsule(void); //| //CharacterBaseにある
-    //                             //|
-    //// 移動量の計算              //|
-    //void CalcGravityPow(void);   //|
 
     VECTOR capsuleTopLocal_;      // ローカル座標の上端
     VECTOR capsuleBottomLocal_;   // ローカル座標の下端

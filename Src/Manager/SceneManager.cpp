@@ -15,6 +15,26 @@
 
 SceneManager* SceneManager::instance_ = nullptr;
 
+SceneManager::SceneManager(void)
+{
+	sceneId_ = SCENE_ID::NONE;
+	waitSceneId_ = SCENE_ID::NONE;
+
+	scene_ = nullptr;
+	fader_ = nullptr;
+	camera_ = nullptr;
+	stage_ = nullptr;
+
+	isSceneChanging_ = false;
+
+	deltaTime_ = 1.0f / 60.0f;
+	totalTime_ = 0.0f;
+
+	mainScreen_ = -1;
+
+	isPlayerAlive_ = true;
+}
+
 void SceneManager::CreateInstance()
 {
 	if (instance_ == nullptr)
@@ -163,6 +183,7 @@ void SceneManager::Destroy(void)
 	DeleteGraph(mainScreen_);
 
 	delete instance_;
+	instance_ = nullptr;
 
 }
 
@@ -215,24 +236,6 @@ void SceneManager::SetStage(std::shared_ptr<Stage> stage)
 	stage_ = stage;
 }
 
-SceneManager::SceneManager(void)
-{
-
-	sceneId_ = SCENE_ID::NONE;
-	waitSceneId_ = SCENE_ID::NONE;
-
-	scene_ = nullptr;
-	fader_ = nullptr;
-
-	isSceneChanging_ = false;
-
-	// デルタタイム
-	deltaTime_ = 1.0f / 60.0f;
-
-	camera_ = nullptr;
-
-}
-
 void SceneManager::ResetDeltaTime(void)
 {
 	deltaTime_ = 0.016f;
@@ -249,7 +252,7 @@ void SceneManager::DoChangeScene(SCENE_ID sceneId)
 	sceneId_ = sceneId;
 
 	// 現在のシーンを解放
-	if (scene_ != nullptr)
+	if (scene_)
 	{
 		scene_.reset();
 	}

@@ -14,8 +14,8 @@
 #include "../Object/enemyGolem.h"
 #include "../Object/Planet.h"
 #include "../UI/GamePanel.h"
-#include "../Object/Metal.h"
-#include "../Object/Water.h"
+//#include "../Object/Metal.h"
+//#include "../Object/Water.h"
 #include "../Renderer/PixelMaterial.h"
 #include "../Renderer/PixelRenderer.h"
 #include "GameScene.h"
@@ -29,8 +29,8 @@ GameScene::GameScene(void)
 	skyDome_ = nullptr;
 	stage_ = nullptr;
 	panel_ = nullptr;
-	metal_ = nullptr;
-	water_ = nullptr;
+	//metal_ = nullptr;
+	//water_ = nullptr;
 	card_ = nullptr;
 }
 

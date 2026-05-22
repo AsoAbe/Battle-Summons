@@ -6,8 +6,6 @@
 #define new new(_NORMAL_BLOCK, __FILE__, __LINE__)
 #endif
 
-//変更箇所あり
-
 SoundManager* SoundManager::instance_ = nullptr;
 #define PATH_CURSOR        "カーソル移動2.mp3"
 #define PATH_BLAST_S      "小爆発.mp3"
@@ -40,7 +38,7 @@ SoundManager::SoundData::SoundData(int handle, int volume)
 {
 	this->handle = handle;
 	this->volume = volume;
-	this->ct = 0;
+	ct = 0;
 }
 
 void SoundManager::CreateInstance(void)
@@ -93,7 +91,7 @@ void SoundManager::CtCountDown(float deltaTime)
 		}
 		else
 		{
-			s.second.ct = 0;
+			s.second.ct = 0.0f;
 		}
 
 	}
@@ -151,9 +149,11 @@ void SoundManager::LoadBGM(SOUND_ID sound, int volume)
 
 void SoundManager::PlaySE(SOUND_ID sound)const
 {
-	if (IsLoaded(sound))
+	const SoundData* data = GetSoundData(sound);
+
+	if (data)
 	{
-		PlaySoundMem(GetSoundData(sound)->handle, DX_PLAYTYPE_BACK);
+		PlaySoundMem(data->handle, DX_PLAYTYPE_BACK);
 	}
 }
 

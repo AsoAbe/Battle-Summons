@@ -1,6 +1,5 @@
 #include "../Utility/AsoUtility.h"
 #include "../Manager/ResourceManager.h"
-#include "../Manager/SceneManager.h"
 #include "Common/Transform.h"
 #include "Common/Capsule.h"
 #include "Common/Collider.h"
@@ -13,6 +12,12 @@ CharacterBase::CharacterBase()
     : resMng_(ResourceManager::GetInstance())
     , scnMng_(SceneManager::GetInstance())
 {
+	isGround_ = false;
+
+	LastPos_ = AsoUtility::VECTOR_ZERO;
+	movePow_ = AsoUtility::VECTOR_ZERO;
+	movedPos_ = AsoUtility::VECTOR_ZERO;
+	jumpPow_ = AsoUtility::VECTOR_ZERO;
 }
 
 CharacterBase::~CharacterBase() 
@@ -66,7 +71,7 @@ void CharacterBase::Collision(void)
 
 void CharacterBase::CollisionGravity(void)
 {
-
+	isGround_ = false;
 	// ジャンプ量を加算
 	movedPos_ = VAdd(movedPos_, jumpPow_);
 
@@ -80,36 +85,27 @@ void CharacterBase::CollisionGravity(void)
 	float gravityPow = 100.0f;
 	float checkPow = 10.0f;
 
-	/*gravHitPosUp_ = VAdd(movedPos_, VScale(dirUpGravity, gravityPow));
-	gravHitPosUp_ = VAdd(gravHitPosUp_, VScale(dirUpGravity, checkPow * 2.0f));
-	gravHitPosDown_ = VAdd(movedPos_, VScale(dirGravity, checkPow));*/
 
 	VECTOR rayStart =
 		VAdd(movedPos_, VScale(dirUpGravity, gravityPow + checkPow * 2.0f));
 
 	VECTOR rayEnd =
 		VAdd(movedPos_, VScale(dirGravity, checkPow));
-	for (const auto c : colliders_)
+	for (const auto& c : colliders_)
 	{
+		auto collider = c.lock();
 
-		// 地面との衝突
-		/*auto hit = MV1CollCheck_Line(
-			c.lock()->modelId_, -1, gravHitPosUp_, gravHitPosDown_);*/
+		if (!collider)
+		{
+			continue;
+		}
+
 		auto hit = MV1CollCheck_Line(
-			c.lock()->modelId_, -1, rayStart, rayEnd);
-
+			collider->modelId_, -1, rayStart, rayEnd);
 		// 最初は上の行のように実装して、木の上に登ってしまうことを確認する
 		//着地判定(高さ)
 		if (hit.HitFlag > 0 && VDot(dirGravity, jumpPow_) > 0.0f)
 		{
-
-			//// 衝突地点から、少し上に移動
-			//movedPos_ = VAdd(hit.HitPosition, VScale(dirUpGravity, 2.0f));
-			///*movedPos_.y = -capsuleOffsetY;*/
-
-			//// ジャンプリセット
-			//jumpPow_ = AsoUtility::VECTOR_ZERO;
-			////stepJump_ = 0.0f;  Playerで管理
 
 			//子クラスで上書き↓
 			OnLanding(hit);
@@ -127,11 +123,16 @@ void CharacterBase::CollisionCapsule(void)
 	Capsule cap = Capsule(*capsule_, trans);
 
 	// カプセルとの衝突判定
-	for (const auto c : colliders_)
+	for (const auto& c : colliders_)
 	{
+		auto collider = c.lock();
 
+		if (!collider)
+		{
+			continue;
+		}
 		auto hits = MV1CollCheck_Capsule(
-			c.lock()->modelId_, -1,
+			collider->modelId_, -1,
 			cap.GetPosTop(), cap.GetPosDown(), cap.GetRadius());
 
 		for (int i = 0; i < hits.HitNum; i++)
@@ -200,12 +201,12 @@ void CharacterBase::OnCapsuleHit(const MV1_COLL_RESULT_POLY& hit, const Capsule&
 
 VECTOR CharacterBase::GetCapsuleTop(void) const
 {
-    return capsule_ ? capsule_->GetPosTop() : VECTOR{ 0,0,0 };
+    return capsule_ ? capsule_->GetPosTop() : AsoUtility::VECTOR_ZERO;
 }
 
 VECTOR CharacterBase::GetCapsuleBottom(void) const
 {
-    return capsule_ ? capsule_->GetPosDown() : VECTOR{ 0,0,0 };
+    return capsule_ ? capsule_->GetPosDown() : AsoUtility::VECTOR_ZERO;
 }
 
 float CharacterBase::GetRadius(void) const

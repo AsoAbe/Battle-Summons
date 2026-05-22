@@ -6,8 +6,6 @@
 class Stage;
 class SkyDome;
 class Player;
-class Metal;
-class Water;
 class PixelMaterial;
 class PixelRenderer;
 class GamePanel;
@@ -84,10 +82,10 @@ private:
 	//ƒJ[ƒh
 	CardManager* card_;
 
-	// Œ
-	std::unique_ptr<Metal> metal_;
-	//…
-	std::unique_ptr<Water> water_;
+	//// Œ
+	//std::unique_ptr<Metal> metal_;
+	////…
+	//std::unique_ptr<Water> water_;
 
 	//BGM
 	BGM bgm_;

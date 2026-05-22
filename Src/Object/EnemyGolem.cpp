@@ -14,8 +14,6 @@
 #include "EnemyGolem.h"
 #include <EffekseerForDXLib.h>
 
-//重力がおかしい？CharacterBaseのものと合わない
-
 EnemyGolem::EnemyGolem(GameScene& scene)
     : scene_(scene)
 {
@@ -28,10 +26,10 @@ EnemyGolem::EnemyGolem(GameScene& scene)
 
     prevTime_ = 0.0f;
     tackleTimer_ = 0.0f;
-    chargeTime_ = 0.7f;
-    runTime_ = 1.2f;
-    tackleSpeed_ = 25.0f;
-    tackleHitRadius_ = 120.0f;    // 例: 半径120
+    chargeTime_ = DEFAULT_CHARGE_TIME;
+    runTime_ = DEFAULT_RUN_TIME;
+    tackleSpeed_ = DEFAULT_TACKLE_SPEED;
+    tackleHitRadius_ = DEFAULT_TACKLE_RADIUS; 
     tackleStartPos_ = VGet(0, 0, 0);
     tackleTargetPos_ = VGet(0, 0, 0);
 
@@ -44,11 +42,11 @@ EnemyGolem::EnemyGolem(GameScene& scene)
     isChargeEffectPlaying_ = false;
 
     // 他のメンバも必要に応じて初期化
-    moveSpeed_ = 4.5f;
-    attackRange_ = 150.0f;
+    moveSpeed_ = DEFAULT_MOVE_SPEED;
+    //attackRange_ = DEFAULT_ATTACK_RANGE;
     attackTimer_ = 0.0f;
     alive_ = true;
-    Hp_ = MaxHp_ = 100.0f;  // 例として
+    Hp_ = MaxHp_;  
     state_ = STATE::NONE;
 
     //死亡関連
@@ -62,8 +60,7 @@ EnemyGolem::EnemyGolem(GameScene& scene)
 	LastPos_ = AsoUtility::VECTOR_ZERO;
     jumpPow_ = AsoUtility::VECTOR_ZERO;
     isJump_ = false;
-    //gravity_ = Planet::DEFAULT_GRAVITY_POW;
-    //isGround_ = false;
+
 
     LastPos_ = AsoUtility::VECTOR_ZERO;
 
@@ -104,26 +101,24 @@ void EnemyGolem::Init()
     //Capsuleコライダ（Playerと同じ仕組み）
     capsule_ = std::make_unique<Capsule>(transform_);
     capsuleOffsetY = 0.0f;
+    //capsuleOffsetY = 90.0f;
 
     // ゴーレム用の当たり範囲（地面用）
-    /*capsule_->SetLocalPosTop({ 0.0f, 200.0f, 0.0f });
-    capsule_->SetLocalPosDown({ 0.0f, 20.0f, 0.0f });*/
-    capsule_->SetLocalPosTop({ 0.0f, 200.0f, 0.0f });
-    capsule_->SetLocalPosDown({ 0.0f, 90.0f, 0.0f });
-    capsule_->SetRadius(60.0f);
+    capsule_->SetLocalPosTop({ 0.0f, LAND_CAPSULE_TOP_Y, 0.0f });
+    capsule_->SetLocalPosDown({ 0.0f, LAND_CAPSULE_BOTTOM_Y, 0.0f });
+    capsule_->SetRadius(CAPSULE_RADIUS);
 
     //Playerの攻撃による判定用
-    capsuleTopLocal_ = { 0.0f, 200.0f, 0.0f };
-    capsuleBottomLocal_ = { 0.0f,  20.0f, 0.0f };
-    capsuleRadius_ = 60.0f;
+    capsuleTopLocal_ = { 0.0f, CAPSULE_TOP_Y, 0.0f };
+    capsuleBottomLocal_ = { 0.0f,  CAPSULE_BOTTOM_Y, 0.0f };
+    capsuleRadius_ = CAPSULE_RADIUS;
 
     // モデルのオフセット
-    //transform_.modelOffset = { 0.0f, -40.0f, 0.0f };
     transform_.modelOffset = { 0.0f, 0.0f, 0.0f };
 
     MaxHp_ = MAX_HP;
     Hp_ = MAX_HP;
-    deadDelay_ = 2.5f;
+    deadDelay_ = DEAD_DELAY_TIME;
 
     EnemyStart_ = false;
 
@@ -138,9 +133,9 @@ void EnemyGolem::Init()
     isTackleCharging_ = false;
     isTackleRunning_ = false;
 
-    tackleTimer_ = 0.0f;
-    chargeTime_ = 0.7f; // ← 重要: 120 にしてたのが原因なので秒値に戻す
-    runTime_ = 1.2f;    // 必要なら再設定
+    //tackleTimer_ = 0.0f;
+    //chargeTime_ = 0.7f; // ← 重要: 120 にしてたのが原因なので秒値に戻す
+    //runTime_ = 1.2f;    // 必要なら再設定
 
     // 初期アニメ
     animationController_->Play((int)ANIM_TYPE::IDLE);
@@ -170,12 +165,8 @@ void EnemyGolem::Update()
     //エフェクト更新
     UpdateEffekseer3D();
 
-    // ★ルートモーションの打ち消し★
-    // （モデルの描画座標をtransform_.posで上書きする）
-    //transform_.pos = movedPos_;
+    // ルートモーションの打ち消し
     transform_.Update();
-
-    //transform_.modelOffset.y = -30.0f;
 
     MV1SetPosition(transform_.modelId, transform_.pos);
 
@@ -186,12 +177,7 @@ void EnemyGolem::Update()
 
     // アニメーション更新
     animationController_->Update();
-    /*  auto& ins = InputManager::GetInstance();
-      if (ins.IsNew(KEY_INPUT_C))
-      {
-          Damage(20);
-      }*/
-      //CheckCannonExplosion();
+
 }
 
 void EnemyGolem::Draw()
@@ -205,21 +191,7 @@ void EnemyGolem::Draw()
     // 丸影描画
     DrawShadow();
 
-#ifdef _DEBUG
-    
-    //DrawSphere3D(
-    //    debugAttackPos_,              // 球の中心位置
-    //    tackleHitRadius_,                 // 半径
-    //    16,                     // 分割数
-    //    GetColor(255, 0, 0),    // 拡散色
-    //    GetColor(255, 0, 0),    // 鏡面色（同じでOK）
-    //    false                   // 塗りつぶさない（ワイヤーフレーム）
-    //);
-#endif
-    //DrawString(0, 110, "Golem Update OK", GetColor(255, 0, 0));
-    //DrawString(0, 140, "Golem Draw OK", GetColor(255, 255, 0));
     auto pos = transform_.pos;
-   // DrawFormatString(0, 170, GetColor(0, 255, 0), "Golem Pos: %.0f, %.0f, %.0f", GetPos().x, GetPos().y, GetPos().z);
 }
 
 bool EnemyGolem::Release()
@@ -247,11 +219,6 @@ void EnemyGolem::UpdateIdle()
 {
     LookAtPlayer(0.1f);
 
-    // Runで上げた分を戻す
-    //transform_.modelOffset.y = -30.0f;
-
-    //重力はゼロにする
-    //jumpPow_ = VGet(0, 0, 0);  Baseに任せる
 
     auto player = GetPlayer();
     if (!player) return;
@@ -262,7 +229,7 @@ void EnemyGolem::UpdateIdle()
     VECTOR diff = VSub(player->GetPos(), transform_.pos);
     float dist = VSize(diff);
 
-    if (!EnemyStart_ && dist < 400.0f)
+    if (!EnemyStart_ && dist < DISCOVER_DISTANCE)
     {
         ChangeState(STATE::MOVE);
         animationController_->Play((int)ANIM_TYPE::RUN, true);
@@ -271,10 +238,6 @@ void EnemyGolem::UpdateIdle()
         return;
     }
 
-    //③ 通常Idle → 基本はMOVE に戻す
-    // ここに来るのは「タックル後の隙が終わった直後」だけ
-   /* ChangeState(STATE::MOVE);
-    animationController_->Play((int)ANIM_TYPE::RUN, true);*/
 }
 
 void EnemyGolem::UpdateMove()
@@ -287,9 +250,6 @@ void EnemyGolem::UpdateMove()
     //距離が離れたらSTATE::TACKLEに
     VECTOR toPlayer = VSub(player->GetPos(), transform_.pos);
     float dist = VSize(toPlayer);
-    //float dist = VSize(VSub(player->GetPos(), transform_.pos));
-
-    constexpr float TACKLE_START_DISTANCE = 800.0f;
 
     if (state_ == STATE::TACKLE) return;
 
@@ -299,24 +259,22 @@ void EnemyGolem::UpdateMove()
         return;
     }
 
-    //transform_.modelOffset.y = 10.0f;
-
     // プレイヤーへの方向ベクトル
    
     toPlayer.y = 0;
-    if (dist < 0.001f) return;
+    if (dist < MIN_MOVE_DISTANCE) return;
 
     // プレイヤー方向を向く
     float targetYaw = atan2(toPlayer.x, toPlayer.z) + DX_PI_F;
     Quaternion targetRot = Quaternion::Euler(0.0f, targetYaw, 0.0f);
-    transform_.quaRot = Quaternion::Slerp(transform_.quaRot, targetRot, 0.1f);
+    transform_.quaRot = Quaternion::Slerp(transform_.quaRot, targetRot, ROTATE_LERP_SPEED);
 
     // 移動処理（プレイヤーに近づく）
-    if (dist > 200.0f)
+    if (dist > MOVE_DISTANCE)
     {
         VECTOR dir = VNorm(toPlayer);
 
-        // ★ ActorBaseの「移動候補」へセット（直接posに加算しない）
+        // ActorBaseの「移動候補」へセット（直接posに加算しない）
         movePow_ = VScale(dir, moveSpeed_);
 
     }
@@ -344,8 +302,8 @@ void EnemyGolem::UpdateAttack()
 
         // 攻撃判定の発生タイミングを設定（例：0.4秒後に当たり、0.2秒間有効）
         float now = SceneManager::GetInstance().GetTotalTime();
-        attackHitStartTime_ = now + 0.4f;
-        attackHitEndTime_ = now + 0.6f;
+        attackHitStartTime_ = now + ATTACK_HIT_START;
+        attackHitEndTime_ = now + ATTACK_HIT_END;
         attackHitDone_ = false;
     }
 
@@ -354,21 +312,14 @@ void EnemyGolem::UpdateAttack()
     // 攻撃判定ONになるタイミング
     if (!attackHitDone_ && now >= attackHitStartTime_ && now <= attackHitEndTime_)
     {
-        if (CheckAttackHit(120.0f  //位置
-            , 70.0f                //高さ
-            , 140.0f))             //範囲
+        if (CheckAttackHit(ATTACK_FORWARD_OFFSET  //位置
+            , ATTACK_HEIGHT_OFFSET                //高さ
+            , ATTACK_RADIUS))                     //範囲
         {
-            player->Damage(20);
+            player->Damage(ATTACK_DAMAGE);
             attackHitDone_ = true;
         }
     }
-
-    //// 攻撃判定終了
-    //if (isAttackHitActive_ && now > attackHitEndTime_)
-    //{
-    //    isAttackHitActive_ = false;
-    //    DeactivateAttackHit(); // 判定OFF
-    //}
 
     // 攻撃アニメーションが終了したら次の行動へ
     if (animationController_->IsEnd())
@@ -390,7 +341,6 @@ void EnemyGolem::ChargeTackle()
     );
 
     float dist = VSize(VSub(player->GetPos(), transform_.pos));
-    constexpr float TACKLE_START_DISTANCE = 800.0f;
 
     if (state_ == STATE::TACKLE) return;
     if (dist <= TACKLE_START_DISTANCE) return;
@@ -404,23 +354,19 @@ void EnemyGolem::ChargeTackle()
         transform_.quaRot = Quaternion::Euler(0.0f, yaw, 0.0f);
     }
 
-    // ★ Golem の現在の forward（実は後ろ向き）
+    // Golem の現在の forward（実は後ろ向き）
     VECTOR forward = transform_.quaRot.GetForward();
 
-    // ★ 前方向は -forward
+    // 前方向は -forward
     VECTOR realForward = VNorm(VScale(forward, -1.0f));
 
-    // ★ 進行方向を固定
+    // 進行方向を固定
     tackleDir_ = realForward;
-
-    // ★ 進行方向の前方500をゴールとする
-    //constexpr float GOAL_DISTANCE = 500.0f;
-    //tackleGoal_ = VAdd(transform_.pos, VScale(realForward, GOAL_DISTANCE));
 
     // チャージ用タイマー初期化（重要）
     tackleTimer_ = 0.0f;
 
-    tackleSpeed_ = 25.0f;
+    tackleSpeed_ = TACKLE_START_SPEED;
     isTackling_ = true;
     isTackleCharging_ = true;      // チャージ開始
     isTackleRunning_ = false;
@@ -432,8 +378,6 @@ void EnemyGolem::ChargeTackle()
 
     EffectTackle();
 
-    //ChangeState(STATE::TACKLE);
-    // エフェクト開始
 } 
 
 void EnemyGolem::UpdateTackle()
@@ -441,48 +385,38 @@ void EnemyGolem::UpdateTackle()
     auto player = GetPlayer();
     if (!player) return;
 
-    // ★初回開始処理
+    // 初回開始処理
     if (!isTackling_)
     {
         isTackling_ = true;
 
-        // forward（前方向）を使う ※モデルが逆なら -forward
+        // forward（前方向）を使うモデルが逆なら -forward
         VECTOR forward = transform_.quaRot.GetForward();
         tackleDir_ = VNorm(VScale(forward, -1.0f));
 
-        tackleSpeed_ = 25.0f;
+        tackleSpeed_ = TACKLE_START_SPEED;
 
     }
 
-    // ★移動
+    // 移動
     movePow_ = VScale(tackleDir_, tackleSpeed_);
 
-    // ★プレイヤーの方向（XZ のみ）を取得
+    // プレイヤーの方向（XZ のみ）を取得
     VECTOR toPlayer = VSub(player->GetPos(), transform_.pos);
     toPlayer.y = 0;
 
     VECTOR dirXZ = tackleDir_;
     dirXZ.y = 0;
   
-    /*if (!tackleHitDone_)
-    {
-        auto player = GetPlayer();
-        if (player)
-        {
-            float distToPlayer = VSize(VSub(player->GetPos(), transform_.pos));
-            if (distToPlayer < tackleHitRadius_)
-            {
-                player->Damage(20);
-                tackleHitDone_ = true;
-            }
-        }
-    }*/
 
     if (isTackleRunning_ && !tackleHitDone_)
     {
-        if (CheckAttackHit(0.0f, 50.0f, tackleHitRadius_))
+        if (CheckAttackHit(
+            0.0f,
+            TACKLE_HEIGHT_OFFSET,
+            tackleHitRadius_))
         {
-            player->Damage(20);
+            player->Damage(TACKLE_DAMAGE);
             tackleHitDone_ = true;
         }
     }
@@ -490,10 +424,10 @@ void EnemyGolem::UpdateTackle()
     // ★内積で通過チェック
     float dot = VDot(toPlayer, dirXZ);
 
-    if (dot < -200.0f) //プレイヤーを通り過ぎたらタックル終了
+    if (dot < TACKLE_PASS_DOT) //プレイヤーを通り過ぎたらタックル終了
     {
         // 減速
-        tackleSpeed_ -= 1.0f;
+        tackleSpeed_ -= TACKLE_DECELERATION;
 
         if (tackleSpeed_ <= 0.0f)
         {
@@ -501,8 +435,6 @@ void EnemyGolem::UpdateTackle()
 
             isTackling_ = false;
             isTackleRunning_ = false;
-            /*ChangeState(STATE::MOVE);
-            animationController_->Play((int)ANIM_TYPE::RUN, true);*/
             DoRest(2.0f);
             return;
         }
@@ -511,7 +443,7 @@ void EnemyGolem::UpdateTackle()
 
 void EnemyGolem::EffectTackle()
 { 
-    if (!isTackleCharging_) return;   // ★重要：チャージ中でなければ動かない
+    if (!isTackleCharging_) return;   // チャージ中でなければ動かない
 
     //  チャージ中処理
    // エフェクトがまだなら再生する
@@ -522,11 +454,11 @@ void EnemyGolem::EffectTackle()
         SetPosPlayingEffekseer3DEffect(
             chargeEffectPlayId_,
             transform_.pos.x,
-            transform_.pos.y + 50,
+            transform_.pos.y + CHARGE_EFFECT_HEIGHT,
             transform_.pos.z
         );
 
-        float scale = 30.0f;
+        float scale = CHARGE_EFFECT_SCALE;
 
         SetScalePlayingEffekseer3DEffect(chargeEffectPlayId_, scale, scale, scale);
 
@@ -622,10 +554,7 @@ void EnemyGolem::LookAtPlayer(float rotSpeed)
 
     // 水平面のみ考慮
     dir.y = 0.0f;
-    if (VSize(dir) < 0.001f) return;
-
-    // atan2で回転角を求める
-    //float rotRad = atan2f(dir.x, dir.z);
+    if (VSize(dir) < MIN_MOVE_DISTANCE) return;
 
     // Golem モデルの前が -Z なので 180度回転を加える
     float rotRad = atan2f(dir.x, dir.z) + DX_PI_F;
@@ -639,7 +568,7 @@ void EnemyGolem::MoveTowardPlayer(float deltaTime)
 
     VECTOR toPlayer = VSub(player->GetPos(), transform_.pos);
     toPlayer.y = 0.0f;
-    if (VSize(toPlayer) < 0.001f) return;
+    if (VSize(toPlayer) < MIN_MOVE_DISTANCE) return;
 
     // 目標回転設定
     double rotRad = atan2(toPlayer.x, toPlayer.z);
@@ -685,170 +614,17 @@ void EnemyGolem::DeactivateAttackHit()
 {
     // 今回は何も必要なし（1フレームのみのダメージ処理）
 }
-//
-//void EnemyGolem::Collision(void)
-//{
-//    // 移動後の仮座標を決める
-//    movedPos_ = VAdd(transform_.pos, movePow_);
-//
-//    //重力衝突
-//    CollisionGravity();
-//
-//    //カプセル衝突
-//    CollisionCapsule();
-//
-//    if (VSize(VSub(movedPos_, prevPos_)) > 200.0f)
-//    {
-//        // 何かおかしい場合（ワープ・突き抜け）の緊急リセット
-//        movedPos_ = prevPos_;
-//    }
-//
-//    // 移動が確定した座標を保存
-//    LastPos_ = movedPos_;
-//
-//    // ---------------------------------------------
-//    //  落下判定（高さが -200 以下 = ステージ外）
-//    // ---------------------------------------------
-//    if (movedPos_.y < -1000.0f)
-//    {
-//        // ステージ中心（例として (0,0,0)）方向へ少し寄せる
-//        VECTOR stageCenter = VGet(0.0f, 0.0f, 0.0f);
-//
-//        // LastPos_ → 中心への方向
-//        VECTOR dir = VSub(stageCenter, LastPos_);
-//        dir = VNorm(dir);
-//
-//        // ★ 戻す位置＝直前位置 ＋ 中心方向へ 50 だけ寄せる
-//        movedPos_ = VAdd(LastPos_, VScale(dir, 100.0f));
-//
-//        // ★ 少しだけ浮かせて衝突が安定するように
-//        movedPos_.y = 5.0f;
-//
-//        // 重力リセット
-//        jumpPow_ = VGet(0, 0, 0);
-//    }
-//
-//    //最終座標を反映
-//    transform_.pos = movedPos_;
-//}
-//
-//void EnemyGolem::CollisionGravity(void)
-//{
-//    // 重力の追加
-//    movedPos_ = VAdd(movedPos_, jumpPow_);
-//
-//    VECTOR dirGravity = AsoUtility::DIR_D;
-//    VECTOR dirUp = AsoUtility::DIR_U;
-//
-//    float checkLen = 20.0f;
-//
-//    // 衝突判定Ray
-//    VECTOR rayStart = VAdd(movedPos_, VScale(dirUp, checkLen));
-//    VECTOR rayEnd = VAdd(movedPos_, VScale(dirGravity, checkLen));
-//
-//    for (auto c : colliders_)
-//    {
-//        if (c.expired()) continue;
-//
-//        auto hit = MV1CollCheck_Line(
-//            c.lock()->modelId_, -1, rayStart, rayEnd);
-//
-//        if (hit.HitFlag > 0)
-//        {
-//            // 地形の角度は考慮せず、垂直に補正する
-//            movedPos_.y = hit.HitPosition.y + 2.0f;
-//
-//            // 重力リセット（坂の下へ滑る力を完全にゼロ
-//            jumpPow_ = VGet(0, 0, 0);
-//
-//            isGround_ = true;
-//            return;
-//        }
-//    }
-//
-//    // 接地していない
-//    isGround_ = false;
-//}
-//
-//void EnemyGolem::CollisionCapsule(void)
-//{
-//    Transform trans = transform_;
-//    trans.pos = movedPos_;
-//    trans.Update();
-//
-//    Capsule cap = Capsule(*capsule_, trans);
-//
-//    for (const auto& c : colliders_)
-//    {
-//        if (c.expired()) continue;
-//
-//        auto hits = MV1CollCheck_Capsule(
-//            c.lock()->modelId_, -1,
-//            cap.GetPosTop(), cap.GetPosDown(), cap.GetRadius());
-//
-//        for (int i = 0; i < hits.HitNum; i++)
-//        {
-//            auto hit = hits.Dim[i];
-//
-//            for (int t = 0; t < 10; t++)
-//            {
-//                int pHit = HitCheck_Capsule_Triangle(
-//                    cap.GetPosTop(), cap.GetPosDown(), cap.GetRadius(),
-//                    hit.Position[0], hit.Position[1], hit.Position[2]);
-//
-//                if (pHit)
-//                {
-//                    VECTOR n = hit.Normal;
-//
-//                    // 法線の水平成分（XZ）は無効化：垂直方向だけにする
-//                    VECTOR verticalOnly = VGet(0.0f, n.y, 0.0f);
-//
-//                    // 垂直分だけで押し出し（XZ方向に影響しない）
-//                    movedPos_ = VAdd(movedPos_, VScale(verticalOnly, 1.0f));
-//
-//                    trans.pos = movedPos_;
-//                    trans.Update();
-//                    continue;
-//                }
-//                break;
-//            }
-//        }
-//
-//        MV1CollResultPolyDimTerminate(hits);
-//    }
-//}
-//
-//void EnemyGolem::CalcGravityPow(void)
-//{
-//
-//    // プレイヤーと同じ重力方向
-//    VECTOR dirGravity = AsoUtility::DIR_D;
-//
-//    // 重力ベクトルを計算
-//    VECTOR gravityVec = VScale(dirGravity, gravity_ * 0.038f); // ※ 60FPS タイマー調整
-//
-//    // 重力加算
-//    jumpPow_ = VAdd(jumpPow_, gravityVec);
-//
-//    // 最初は実装しない。地面と突き抜けることを確認する。
-//    // 内積
-//    //float dot = VDot(dirGravity, jumpPow_);
-//    //if (dot >= 0.0f)
-//    //{
-//    //	// 重力方向と反対方向(マイナス)でなければ、ジャンプ力を無くす
-//    //	jumpPow_ = gravity;
-//    //}
-//
-//}
+
 
 void EnemyGolem::OnLanding(const MV1_COLL_RESULT_POLY& hit)
 {
-    movedPos_.y = hit.HitPosition.y + 2.0f;
+    movedPos_.y = hit.HitPosition.y + LAND_OFFSET_Y;
 
     // ゴーレムは跳ね・滑りを完全に無効化
     jumpPow_ = VGet(0.0f, 0.0f, 0.0f);
 
     isGround_ = true;
+   
 }
 
 void EnemyGolem::OnCapsuleHit(const MV1_COLL_RESULT_POLY& hit, const Capsule& cap)
@@ -858,18 +634,18 @@ void EnemyGolem::OnCapsuleHit(const MV1_COLL_RESULT_POLY& hit, const Capsule& ca
     // ★Y方向の押し出しを禁止
     VECTOR horizontal = VGet(n.x, 0.0f, n.z);
 
-    if (VSize(horizontal) > 0.0001f)
+    if (VSize(horizontal) > NORMALIZE_MIN_LENGTH)
     {
         horizontal = VNorm(horizontal);
-        movedPos_ = VAdd(movedPos_, VScale(horizontal, 1.0f));
+        movedPos_ = VAdd(movedPos_, VScale(horizontal, WALL_PUSH_POWER));
     }
 }
 
 void EnemyGolem::DrawShadow(void)
 {
 
-    float PLAYER_SHADOW_HEIGHT = 300.0f;
-    float PLAYER_SHADOW_SIZE = 120.0f;
+    float PLAYER_SHADOW_HEIGHT = SHADOW_HEIGHT;
+    float PLAYER_SHADOW_SIZE = SHADOW_SIZE;
 
     int i;
     MV1_COLL_RESULT_POLY_DIM HitResDim;
@@ -888,7 +664,7 @@ void EnemyGolem::DrawShadow(void)
     SetTextureAddressMode(DX_TEXADDRESS_CLAMP);
 
     // 影を落とすモデルの数だけ繰り返し
-    for (const auto c : colliders_)
+    for (const auto& c : colliders_)
     {
 
         // チェックするモデルは、jが0の時はステージモデル、1以上の場合はコリジョンモデル
@@ -900,7 +676,7 @@ void EnemyGolem::DrawShadow(void)
             transform_.pos, VAdd(transform_.pos, { 0.0f, -PLAYER_SHADOW_HEIGHT, 0.0f }), PLAYER_SHADOW_SIZE);
 
         // 頂点データで変化が無い部分をセット
-        Vertex[0].dif = GetColorU8(255, 255, 255, 255);
+        Vertex[0].dif = GetColorU8(COLOR_MAX, COLOR_MAX, COLOR_MAX, COLOR_MAX);
         Vertex[0].spc = GetColorU8(0, 0, 0, 0);
         Vertex[0].su = 0.0f;
         Vertex[0].sv = 0.0f;
@@ -917,7 +693,7 @@ void EnemyGolem::DrawShadow(void)
             Vertex[2].pos = HitRes->Position[2];
 
             // ちょっと持ち上げて重ならないようにする
-            SlideVec = VScale(HitRes->Normal, 0.5f);
+            SlideVec = VScale(HitRes->Normal, SHADOW_SLIDE_SCALE);
             Vertex[0].pos = VAdd(Vertex[0].pos, SlideVec);
             Vertex[1].pos = VAdd(Vertex[1].pos, SlideVec);
             Vertex[2].pos = VAdd(Vertex[2].pos, SlideVec);
@@ -927,21 +703,23 @@ void EnemyGolem::DrawShadow(void)
             Vertex[1].dif.a = 0;
             Vertex[2].dif.a = 0;
             if (HitRes->Position[0].y > transform_.pos.y - PLAYER_SHADOW_HEIGHT)
-                Vertex[0].dif.a = static_cast<int>(roundf(128.0f * (1.0f - fabs(HitRes->Position[0].y - transform_.pos.y) / PLAYER_SHADOW_HEIGHT)));
+                Vertex[0].dif.a = static_cast<int>(roundf(SHADOW_ALPHA_MAX * (1.0f - fabs(HitRes->Position[0].y - transform_.pos.y) / PLAYER_SHADOW_HEIGHT)));
 
             if (HitRes->Position[1].y > transform_.pos.y - PLAYER_SHADOW_HEIGHT)
-                Vertex[1].dif.a = static_cast<int>(roundf(128.0f * (1.0f - fabs(HitRes->Position[1].y - transform_.pos.y) / PLAYER_SHADOW_HEIGHT)));
+                Vertex[1].dif.a = static_cast<int>(roundf(SHADOW_ALPHA_MAX * (1.0f - fabs(HitRes->Position[1].y - transform_.pos.y) / PLAYER_SHADOW_HEIGHT)));
 
             if (HitRes->Position[2].y > transform_.pos.y - PLAYER_SHADOW_HEIGHT)
-                Vertex[2].dif.a = static_cast<int>(roundf(128.0f * (1.0f - fabs(HitRes->Position[2].y - transform_.pos.y) / PLAYER_SHADOW_HEIGHT)));
+                Vertex[2].dif.a = static_cast<int>(roundf(SHADOW_ALPHA_MAX * (1.0f - fabs(HitRes->Position[2].y - transform_.pos.y) / PLAYER_SHADOW_HEIGHT)));
+
+			float uvScale = PLAYER_SHADOW_SIZE * SHADOW_UV_SCALE;
 
             // ＵＶ値は地面ポリゴンとプレイヤーの相対座標から割り出す
-            Vertex[0].u = (HitRes->Position[0].x - transform_.pos.x) / (PLAYER_SHADOW_SIZE * 2.0f) + 0.5f;
-            Vertex[0].v = (HitRes->Position[0].z - transform_.pos.z) / (PLAYER_SHADOW_SIZE * 2.0f) + 0.5f;
-            Vertex[1].u = (HitRes->Position[1].x - transform_.pos.x) / (PLAYER_SHADOW_SIZE * 2.0f) + 0.5f;
-            Vertex[1].v = (HitRes->Position[1].z - transform_.pos.z) / (PLAYER_SHADOW_SIZE * 2.0f) + 0.5f;
-            Vertex[2].u = (HitRes->Position[2].x - transform_.pos.x) / (PLAYER_SHADOW_SIZE * 2.0f) + 0.5f;
-            Vertex[2].v = (HitRes->Position[2].z - transform_.pos.z) / (PLAYER_SHADOW_SIZE * 2.0f) + 0.5f;
+            Vertex[0].u = (HitRes->Position[0].x - transform_.pos.x) / uvScale + SHADOW_UV_OFFSET;
+            Vertex[0].v = (HitRes->Position[0].z - transform_.pos.z) / uvScale + SHADOW_UV_OFFSET;
+            Vertex[1].u = (HitRes->Position[1].x - transform_.pos.x) / uvScale + SHADOW_UV_OFFSET;
+            Vertex[1].v = (HitRes->Position[1].z - transform_.pos.z) / uvScale + SHADOW_UV_OFFSET;
+            Vertex[2].u = (HitRes->Position[2].x - transform_.pos.x) / uvScale + SHADOW_UV_OFFSET;
+            Vertex[2].v = (HitRes->Position[2].z - transform_.pos.z) / uvScale + SHADOW_UV_OFFSET;
 
             // 影ポリゴンを描画
             DrawPolygon3D(Vertex, 1, imgShadow_, TRUE);
@@ -968,7 +746,7 @@ void EnemyGolem::Rotate(float deltaTime)
 {
     transform_.quaRot = Quaternion::Slerp(transform_.quaRot
         , goalQuaRot_
-        , deltaTime * 5.0f);
+        , deltaTime * ROTATE_SPEED);
 
     transform_.quaRot.Normalize();
 }
