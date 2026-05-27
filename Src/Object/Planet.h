@@ -20,6 +20,19 @@ public:
 	// ゲームオーバー範囲
 	static constexpr float DEFAULT_DEAD_LENGTH = 1000.0f;
 
+	// 環境光の明るさ
+	static constexpr float AMBIENT_LIGHT = 0.2f;
+
+	// RGBA 最大値(白・完全不透明)
+	static constexpr float COLOR_MAX = 1.0f;
+
+	// 未使用アルファ値
+	static constexpr float UNUSED_ALPHA = 0.0f;
+
+	// 定数バッファスロット
+	static constexpr int VS_CONST_SLOT = 0;
+	static constexpr int PS_CONST_SLOT = 3;
+
 	// 重力種別
 	enum class TYPE
 	{

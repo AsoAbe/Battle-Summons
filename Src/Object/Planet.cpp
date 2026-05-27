@@ -32,17 +32,22 @@ void Planet::Init(void)
 
 	//ƒ‚ƒfƒ‹•`‰æ—p
 	material_ = std::make_unique<ModelMaterial>(
-		"StdModelVS.cso", 0,
-		"StdModelPS.cso", 3);
-	material_->AddConstBufPS({ 1.0f, 1.0f,1.0f,1.0f });
+		"StdModelVS.cso", VS_CONST_SLOT,
+		"StdModelPS.cso", PS_CONST_SLOT);
+	material_->AddConstBufPS({ COLOR_MAX, COLOR_MAX, COLOR_MAX, COLOR_MAX });
 	VECTOR worldLightDirection = GetLightDirection();
-	material_->AddConstBufPS({ worldLightDirection.x,
+	material_->AddConstBufPS({ 
+		worldLightDirection.x,
 		worldLightDirection.y,
 		worldLightDirection.z,
-		1.0f });
+		COLOR_MAX });
 
 	//ŠÂ‹«Œõ
-	material_->AddConstBufPS({ 0.2f,0.2f,0.2f,0.0f });
+	material_->AddConstBufPS({ AMBIENT_LIGHT,
+	AMBIENT_LIGHT,
+	AMBIENT_LIGHT,
+	UNUSED_ALPHA
+		});
 
 	renderer_ = std::make_unique<ModelRenderer>(
 		transform_.modelId, *material_);
