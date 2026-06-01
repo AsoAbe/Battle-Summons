@@ -98,7 +98,7 @@ void Player::Init(void)
 
 	//カプセルコライダ
 	capsule_ = std::make_unique<Capsule>(transform_);
-	capsuleOffsetY = CAPSULE_OFFSET_Y;;
+	capsuleOffsetY = CAPSULE_OFFSET_Y;
 	
 	//魔法使い
 	capsule_->SetLocalPosTop({ 0.0f, CAPSULE_TOP_Y, 0.0f });

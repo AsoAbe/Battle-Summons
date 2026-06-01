@@ -18,6 +18,24 @@ EnemyGolem::EnemyGolem(GameScene& scene)
     : scene_(scene)
 {
     animationController_ = nullptr;
+
+    attackRange_ = 0.0f;
+    attackPos = AsoUtility::VECTOR_ZERO;
+
+    EndTime_ = 0.0f;
+
+    footOffsetY = 0.0f;
+
+    playerRotY_ = Quaternion();
+    goalQuaRot_ = Quaternion();
+    stepRotTime_ = 0.0f;
+
+    attackHitStartTime_ = 0.0f;
+    attackHitEndTime_ = 0.0f;
+    chargeStartTime_ = 0.0f;
+
+    debugAttackPos_ = AsoUtility::VECTOR_ZERO;
+
     // タックル関連
     isTackling_ = false;
     isTackleCharging_ = false;
@@ -43,10 +61,10 @@ EnemyGolem::EnemyGolem(GameScene& scene)
 
     // 他のメンバも必要に応じて初期化
     moveSpeed_ = DEFAULT_MOVE_SPEED;
-    //attackRange_ = DEFAULT_ATTACK_RANGE;
     attackTimer_ = 0.0f;
     alive_ = true;
-    Hp_ = MaxHp_;  
+    MaxHp_ = 0.0f;
+    Hp_ = 0.0f;
     state_ = STATE::NONE;
 
     //死亡関連
@@ -54,13 +72,26 @@ EnemyGolem::EnemyGolem(GameScene& scene)
     deadDelay_ = 0.0f;
     gameOverReserved_ = false;
 
+    damaged_ = false;
+    preDamaged_ = false;
+    invincibleTimer_ = 0.0f;
+
+    attackHitDone_ = false;
+
+    EnemyStart_ = false;
+
+    prevPos_ = AsoUtility::VECTOR_ZERO;
+
+    capsuleTopLocal_ = AsoUtility::VECTOR_ZERO;
+    capsuleBottomLocal_ = AsoUtility::VECTOR_ZERO;
+    capsuleRadius_ = 0.0f;
+
     moveDir_ = AsoUtility::VECTOR_ZERO;
 	movePow_ = AsoUtility::VECTOR_ZERO;
 	movedPos_ = AsoUtility::VECTOR_ZERO;
 	LastPos_ = AsoUtility::VECTOR_ZERO;
     jumpPow_ = AsoUtility::VECTOR_ZERO;
     isJump_ = false;
-
 
     LastPos_ = AsoUtility::VECTOR_ZERO;
 
@@ -676,7 +707,13 @@ void EnemyGolem::DrawShadow(void)
             transform_.pos, VAdd(transform_.pos, { 0.0f, -PLAYER_SHADOW_HEIGHT, 0.0f }), PLAYER_SHADOW_SIZE);
 
         // 頂点データで変化が無い部分をセット
-        Vertex[0].dif = GetColorU8(COLOR_MAX, COLOR_MAX, COLOR_MAX, COLOR_MAX);
+        GetColorU8(
+            static_cast<int>(COLOR_MAX),
+            static_cast<int>(COLOR_MAX),
+            static_cast<int>(COLOR_MAX),
+            static_cast<int>(COLOR_MAX)
+        );
+
         Vertex[0].spc = GetColorU8(0, 0, 0, 0);
         Vertex[0].su = 0.0f;
         Vertex[0].sv = 0.0f;

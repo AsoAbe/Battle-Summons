@@ -45,7 +45,7 @@ void Stage::Init(void)
 	MakeMainStage();
 	MakeWarpStar();
 
-	step_ = -1.0f;
+	step_ = -STEP_INACTIVE;
 }
 
 void Stage::Update(void)
@@ -128,7 +128,7 @@ void Stage::MakeMainStage(void)
 		resMng_.LoadModelDuplicate(ResourceManager::SRC::MAIN_PLANET));
 	planetTrans.scl = AsoUtility::VECTOR_ONE;
 	planetTrans.quaRot = Quaternion();
-	planetTrans.pos = { 0.0f, -100.0f, 0.0f };
+	planetTrans.pos = { 0.0f, -MAIN_PLANET_POS_Y, 0.0f };
 
 	// 当たり判定(コライダ)作成
 	planetTrans.MakeCollider(Collider::TYPE::STAGE);
@@ -141,7 +141,6 @@ void Stage::MakeMainStage(void)
 			name, Planet::TYPE::GROUND, planetTrans);
 	planet->Init();
 	planets_.emplace(name, std::move(planet));
-	//------------------------------------------------------------------------------
 
 }
 
@@ -153,11 +152,11 @@ void Stage::MakeWarpStar(void)
 
 	// 落とし穴惑星へのワープスター
 	//------------------------------------------------------------------------------
-	trans.pos = { -910.0f, 200.0f, 894.0f };
-	trans.scl = { 0.6f, 0.6f, 0.6f };
+	trans.pos = { -WARP_STAR_POS_X, WARP_STAR_POS_Y, WARP_STAR_POS_Z };
+	trans.scl = { WARP_STAR_SCALE, WARP_STAR_SCALE, WARP_STAR_SCALE };
 	trans.quaRot = Quaternion::Euler(
-		AsoUtility::Deg2RadF(-25.0f),
-		AsoUtility::Deg2RadF(-50.0f),
+		AsoUtility::Deg2RadF(WARP_STAR_ROT_X),
+		AsoUtility::Deg2RadF(WARP_STAR_ROT_Y),
 		AsoUtility::Deg2RadF(0.0f)
 	);
 

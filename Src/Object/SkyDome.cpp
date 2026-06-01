@@ -31,7 +31,7 @@ void SkyDome::Init(void)
 	transform_.pos = AsoUtility::VECTOR_ZERO;
 	transform_.quaRot = Quaternion::Euler(
 		0.0f, 
-		AsoUtility::Deg2RadF(180.0f),
+		AsoUtility::Deg2RadF(DEG_ROT_Y),
 		0.0f
 	);
 	transform_.quaRotLocal = Quaternion();
@@ -93,8 +93,7 @@ void SkyDome::ChangeStateFollow(void)
 
 	stateUpdate_ = std::bind(&SkyDome::UpdateFollow, this);
 
-	transform_.pos = syncTransform_.pos;
-	transform_.Update();
+	SyncPosition();
 
 }
 
@@ -107,6 +106,11 @@ void SkyDome::UpdateStay(void)
 }
 
 void SkyDome::UpdateFollow(void)
+{
+	SyncPosition();
+}
+
+void SkyDome::SyncPosition(void)
 {
 	transform_.pos = syncTransform_.pos;
 	transform_.Update();

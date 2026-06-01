@@ -9,8 +9,12 @@ class SkyDome : public ActorBase
 
 public:
 
+	// ƒXƒP[ƒ‹
 	static constexpr float SCALE = 100.0f;
 	static constexpr VECTOR SCALES = { SCALE, SCALE, SCALE };
+
+	// ‰Šú‰ñ“]
+	static constexpr float DEG_ROT_Y = 180.0f;
 
 	// ó‘Ô
 	enum class STATE
@@ -53,4 +57,6 @@ private:
 	void UpdateStay(void);
 	void UpdateFollow(void);
 
+	// ‹¤’Êˆ—
+	void SyncPosition(void);
 };

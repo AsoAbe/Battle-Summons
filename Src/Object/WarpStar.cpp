@@ -38,7 +38,7 @@ void WarpStar::Init(void)
 	material_ = std::make_unique<ModelMaterial>(
 		"NoTexVS.cso", 0,
 		"NoTexPS.cso", 1);
-	material_->AddConstBufPS({ 1.0f, 0.9f,0.1f,0.8f});
+	material_->AddConstBufPS({ COLOR_R, COLOR_G, COLOR_B, COLOR_A });
 
 	renderer_ = std::make_unique<ModelRenderer>(
 		transform_.modelId, *material_);

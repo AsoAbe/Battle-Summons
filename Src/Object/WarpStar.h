@@ -32,6 +32,12 @@ public:
 	// エフェクト生成間隔
 	static constexpr float TERM_EFFECT = 0.08f;
 
+	// ワープスターの色(RGBA)
+	static constexpr float COLOR_R = 1.0f;   // 赤
+	static constexpr float COLOR_G = 0.9f;   // 緑
+	static constexpr float COLOR_B = 0.1f;   // 青
+	static constexpr float COLOR_A = 0.8f;   // 透明度
+
 	// 状態
 	enum class STATE
 	{
