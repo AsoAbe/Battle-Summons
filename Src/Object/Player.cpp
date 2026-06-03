@@ -402,7 +402,7 @@ void Player::DrawShadow(void)
 	SetTextureAddressMode(DX_TEXADDRESS_CLAMP);
 
 	// 影を落とすモデルの数だけ繰り返し
-	for (const auto c : colliders_)
+	for (const auto& c : colliders_)
 	{
 
 		// チェックするモデルは、jが0の時はステージモデル、1以上の場合はコリジョンモデル
@@ -749,14 +749,14 @@ void Player::Died(float delta)
 {
 }
 
-float Player::GetMaxHp()
+float Player::GetMaxHp() const
 {
-	return MaxHp_;
+	return static_cast<float>(MaxHp_);
 }
 
-float Player::GetHp()
+float Player::GetHp() const
 {
-	return Hp_;
+	return static_cast<float>(Hp_);
 }
 
 void Player::ProcessShot(bool byCard)
@@ -907,7 +907,7 @@ void Player::CreateGoldShot(void)
 			float pitch = basePitch + offsetPitch;
 
 			// 向きベクトル算出（角度→方向ベクトル）
-			VECTOR dir;
+			VECTOR dir = AsoUtility::VECTOR_ZERO;
 			dir.x = sinf(yaw) * cosf(pitch);
 			dir.y = sinf(pitch);
 			dir.z = cosf(yaw) * cosf(pitch);

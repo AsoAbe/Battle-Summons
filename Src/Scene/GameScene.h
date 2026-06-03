@@ -16,6 +16,13 @@ class GameScene : public SceneBase
 {
 
 public:
+
+	// ビネット強度
+	static constexpr float VIGNETTE_POWER = 3.5f;
+
+	// レンズ歪み強度
+	static constexpr float LENS_POWER = 3.5f;
+
 	enum class GAME_STATE
 	{
 		GAME,			//メインゲーム
@@ -58,8 +65,6 @@ public:
 	//使うサウンドをまとめてロード
 	void LoadSceneGameSound();
 
-	void OnGameOver();
-
 private:
 
 	// ステージ
@@ -72,20 +77,13 @@ private:
 	std::shared_ptr<Player> player_;
 
 	// 敵ゴーレム
-	//std::unique_ptr<EnemyGolem> enemy_;
 	std::shared_ptr<EnemyGolem> enemy_;
 	
 	//ステータス
 	std::unique_ptr<GamePanel> panel_;
 	
-	//GamePanel* panel_;
 	//カード
 	CardManager* card_;
-
-	//// 月
-	//std::unique_ptr<Metal> metal_;
-	////水
-	//std::unique_ptr<Water> water_;
 
 	//BGM
 	BGM bgm_;

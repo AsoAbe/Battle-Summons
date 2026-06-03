@@ -15,6 +15,8 @@
 
 GameOverScene::GameOverScene(void)
 {
+	Clear = -1;
+	Over = -1;
 }
 
 GameOverScene::~GameOverScene(void)
@@ -63,20 +65,38 @@ void GameOverScene::Update(void)
 
 void GameOverScene::Draw(void)
 {
-	if (SceneManager::GetInstance().IsPlayerAlive())
-	{
-		DrawGraph(-40, -90, Clear, true);
-		DrawFormatString(480, 520, 0x000000, "PUSH SPACE", true);
-	}
-	else
-	{
-		DrawRotaGraph(Application::SCREEN_SIZE_X / 2, 350, 2.8, 0.0, Over, true);
-		DrawFormatString(480, 520, 0xffffff, "PUSH SPACE", true);
-	}
-	//DrawGraph(- 40, - 90, Clear, true);
-	//DrawFormatString(740, 100, 0x00ffff, "GameOverScene", true);
-	//DrawFormatString(740, 120, 0x00ffff, "シーン遷移　　：右SHIFT", true);
-	
+    if (SceneManager::GetInstance().IsPlayerAlive())
+    {
+        DrawGraph(
+            CLEAR_X,
+            CLEAR_Y,
+            Clear,
+            true);
+
+        DrawFormatString(
+            TEXT_X,
+            TEXT_Y,
+            TEXT_COLOR_BLACK,
+            "PUSH SPACE",
+            true);
+    }
+    else
+    {
+        DrawRotaGraph(
+            Application::SCREEN_SIZE_X / 2,
+            OVER_Y,
+            OVER_SCALE,
+            0.0f,
+            Over,
+            true);
+
+        DrawFormatString(
+            TEXT_X,
+            TEXT_Y,
+            TEXT_COLOR_WHITE,
+            "PUSH SPACE",
+            true);
+    }
 }
 
 bool GameOverScene::Release(void)

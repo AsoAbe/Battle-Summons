@@ -36,7 +36,7 @@ public:
 	static constexpr float TIME_ROT = 1.0f;
 
 	//最大体力
-	static constexpr float MAX_HP = 100.0f;
+	static constexpr int MAX_HP = 100;
 
 	//ダメージ受けた時の無敵時間
 	static constexpr float INVINCIBLE_TIME = 0.2f;
@@ -167,8 +167,8 @@ public:
 	const Capsule& GetCapsule(void) const;
 
 	//体力参照
-	float GetMaxHp();
-	float GetHp();
+	float GetMaxHp() const;
+	float GetHp() const;
 
 	void Heal(int Value);
 	bool Damage(int Value);

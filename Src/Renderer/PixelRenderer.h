@@ -20,6 +20,9 @@ public:
 	// ポリゴン数
 	static constexpr int NUM_POLYGON = 2;
 
+	// 色の最大値
+	static constexpr int COLOR_MAX = 255;
+
 	// コンストラクタ
 	PixelRenderer(PixelMaterial& pixelMaterial);
 

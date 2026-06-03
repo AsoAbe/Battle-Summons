@@ -29,9 +29,11 @@ GameScene::GameScene(void)
 	skyDome_ = nullptr;
 	stage_ = nullptr;
 	panel_ = nullptr;
-	//metal_ = nullptr;
-	//water_ = nullptr;
 	card_ = nullptr;
+
+	mode_ = MODE::MAIN;
+
+	postEffectScreen_ = -1;
 }
 
 GameScene::~GameScene(void)
@@ -48,7 +50,6 @@ void GameScene::Init(void)
 	player_->Init();
 
 	// 敵ゴーレム
-	//enemy_ = std::make_unique<EnemyGolem>(*this);
 	enemy_ = std::make_shared<EnemyGolem>(*this);
 	enemy_->Init();
 	enemy_->SetPlayer(player_);
@@ -63,7 +64,6 @@ void GameScene::Init(void)
 	stage_->ChangeStage(Stage::NAME::MAIN_PLANET);
 
 	//カード
-	//card_ = std::make_unique<CardManager>();
 	card_ = &CardManager::GetInstance();
 	card_->Init();
 	card_->SetPlayer(player_.get());
@@ -72,20 +72,11 @@ void GameScene::Init(void)
 
 	//ステータス
 	panel_ = std::make_unique<GamePanel>(*this,player_,enemy_);
-	//panel_ = new GamePanel(*this,*player_);
 	panel_->Init();
 
 	// スカイドーム
 	skyDome_ = std::make_unique<SkyDome>(player_->GetTransform());
 	skyDome_->Init();
-
-	//// 金属
-	//metal_ = std::make_unique<Metal>();
-	//metal_->Init();
-	//	
-	//// 水
-	//water_ = std::make_unique<Water>();
-	//water_->Init();
 
 	mainCamera.SetFollow(&player_->GetTransform());
 	mainCamera.ChangeMode(Camera::MODE::FOLLOW);
@@ -117,7 +108,7 @@ void GameScene::Init(void)
 
 	// ポストエフェクト用(ビネット)
 	vineMaterial_ = std::make_unique<PixelMaterial>("Vignette.cso", 1);
-	vineMaterial_->AddConstBuf({ 3.5f, 0.0f, 0.0f, 0.0f });
+	vineMaterial_->AddConstBuf({ VIGNETTE_POWER, 0.0f, 0.0f, 0.0f });
 	vineMaterial_->AddTextureBuf(SceneManager::GetInstance().GetMainScreen());
 	vineRenderer_ = std::make_unique<PixelRenderer>(*vineMaterial_);
 	vineRenderer_->MakeSquereVertex(
@@ -127,7 +118,7 @@ void GameScene::Init(void)
 
 	// ポストエフェクト用(レンズの歪み)
 	lensMaterial_ = std::make_unique<PixelMaterial>("LensDistortion.cso", 1);
-	lensMaterial_->AddConstBuf({ 3.5f, 0.0f, 0.0f, 0.0f });
+	lensMaterial_->AddConstBuf({ LENS_POWER, 0.0f, 0.0f, 0.0f });
 	lensMaterial_->AddTextureBuf(SceneManager::GetInstance().GetMainScreen());
 	lensRenderer_ = std::make_unique<PixelRenderer>(*lensMaterial_);
 	lensRenderer_->MakeSquereVertex(
@@ -182,18 +173,11 @@ void GameScene::Update(void)
 	
 	panel_->Update();
 
-	//metal_->Update();
-
-	//water_->Update();
-
 }
 
 void GameScene::Draw(void)
 {
-	bool isLeftDir;
-	isLeftDir = false;
-	double angle;
-	angle = 0.0;
+	
 	// 背景
 	skyDome_->Draw();
 	stage_->Draw();
@@ -201,24 +185,12 @@ void GameScene::Draw(void)
 	player_->Draw();
 	enemy_->Draw();
 
-	//metal_->Draw();
-	//water_->Draw();
-
 	card_->Draw();
 
 	stage_->DrawTranslucent();
 	
 	//ステータス(画面全体の明るさを含む)
 	panel_->Draw();
-
-	// ヘルプ
-	/*DrawFormatString(740, 20, 0xFFFFFF, "シーン遷移　　：右SHIFT");
-	DrawFormatString(740, 40, 0xFFFFFF, "大砲　：Zキー");
-	DrawFormatString(740, 60, 0xFFFFFF, "回復：Xキー");
-	DrawFormatString(740, 80, 0xFFFFFF, "射撃：Cキー");
-	DrawFormatString(740, 100, 0xFFFFFF, "カードレア度変更：Vキー");
-	DrawFormatString(740, 120, 0xFFFFFF, "ジャンプ：＼(スペース)");*/
-
 
 	int mainScreen = SceneManager::GetInstance().GetMainScreen();
 

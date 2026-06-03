@@ -24,8 +24,35 @@ namespace {
 	constexpr int VOLUME_BGM_MAIN = 255 * 75 / 100;
 
 	constexpr int TITLE_MODEL_ROT_X = -90;
-	constexpr int TITLE_MODEL_ROT_Z = 0;
 
+	// キャラクター配置位置
+	constexpr float CHARACTER_POS_X = -250.0f;
+	constexpr float CHARACTER_POS_Y = -32.0f;
+	constexpr float CHARACTER_POS_Z = -105.0f;
+
+	// キャラクター表示倍率
+	constexpr float CHARACTER_SCALE = 0.4f;
+
+	// キャラクター初期向き(Y軸回転角度)
+	constexpr float CHARACTER_ROT_Y = 90.0f;
+
+	// 走るアニメーション
+	constexpr float RUN_ANIM_SPEED = 20.0f;
+
+	// PUSH SPACE 点滅設定
+	constexpr float PUSH_ALPHA_MAX = 255.0f;
+	constexpr float PUSH_ALPHA_MIN = 50.0f;
+	constexpr float PUSH_ALPHA_SPEED = 2.0f;
+	constexpr float PUSH_ALPHA_DIR_PLUS = 1.0f;
+	constexpr float PUSH_ALPHA_DIR_MINUS = -1.0f;
+
+	// タイトル画像描画位置
+	constexpr int TITLE_DRAW_Y = 350;
+	constexpr double TITLE_DRAW_SCALE = 0.7;
+
+	// PUSH SPACE画像描画位置
+	constexpr int PUSH_DRAW_Y = 500;
+	constexpr double PUSH_DRAW_SCALE = 1.0;
 }
 
 TitleScene::TitleScene(void)
@@ -34,6 +61,10 @@ TitleScene::TitleScene(void)
 	imgTitle_ = -1;
 	skyDome_ = nullptr;
 	animationController_ = nullptr;
+
+	bgmplay_ = 0;
+	bgmcount_ = 0;
+	bgmtamesi_ = 0;
 
 	pushAlpha_ = 0.0f;
 	pushAlphaDir_ = 0.0f;
@@ -56,36 +87,21 @@ void TitleScene::Init(void)
 	skyDome_ = std::make_unique<SkyDome>(spaceDomeTran_);
 	skyDome_->Init();
 
-	float size;
-
-	//// メイン惑星
-	//planet_.SetModel(resMng_.LoadModelDuplicate(ResourceManager::SRC::FALL_PLANET));
-	//planet_.pos = AsoUtility::VECTOR_ZERO;
-	//planet_.scl = AsoUtility::VECTOR_ONE;
-	//planet_.Update();
-
-	//// 回転する惑星
-	//movePlanet_.SetModel(resMng_.LoadModelDuplicate(ResourceManager::SRC::LAST_PLANET));
-	//movePlanet_.pos = { -250.0f, -100.0f, -100.0f };
-	//size = 0.7f;
-	//movePlanet_.scl = { size, size, size };
-	//movePlanet_.quaRotLocal = Quaternion::Euler(
-	//	AsoUtility::Deg2RadF(90.0f), 0.0f, 0.0f);
-	//movePlanet_.Update();
+	float size = 0.0f;
 
 	// キャラ
 	charactor_.SetModel(resMng_.LoadModelDuplicate(ResourceManager::SRC::PLAYER));
-	charactor_.pos = { -250.0f, -32.0f, -105.0f };
-	size = 0.4f;
+	charactor_.pos = { CHARACTER_POS_X,CHARACTER_POS_Y,CHARACTER_POS_Z };
+	size = CHARACTER_SCALE;
 	charactor_.scl = { size, size, size };
 	charactor_.quaRot = Quaternion::Euler(
-		0.0f, AsoUtility::Deg2RadF(90.0f), 0.0f);
+		0.0f, AsoUtility::Deg2RadF(CHARACTER_ROT_Y), 0.0f);
 	charactor_.Update();
 
 	// アニメーションの設定
 	std::string path = Application::PATH_MODEL + "Player/";
 	animationController_ = std::make_unique<AnimationController>(charactor_.modelId);
-	animationController_->Add(0, path + "Run.mv1", 20.0f);
+	animationController_->Add(0, path + "Run.mv1", RUN_ANIM_SPEED);
 	animationController_->Play(0);
 
 	// 定点カメラ
@@ -100,8 +116,8 @@ void TitleScene::Init(void)
 	);
 
 	//Startを点滅
-	pushAlpha_ = 255.0f;
-	pushAlphaDir_ = -1.0f;
+	pushAlpha_ = PUSH_ALPHA_MAX;
+	pushAlphaDir_ = PUSH_ALPHA_DIR_MINUS;
 }
 
 void TitleScene::Update(void)
@@ -121,28 +137,23 @@ void TitleScene::Update(void)
 		SceneManager::GetInstance().ChangeScene(SceneManager::SCENE_ID::GAME);
 	}
 
-	// 惑星の回転
-	movePlanet_.quaRot = movePlanet_.quaRot.Mult(
-		Quaternion::Euler(0.0f, 0.0f, AsoUtility::Deg2RadF(-1.0f)));
-	movePlanet_.Update();
-
 	// キャラアニメーション
 	animationController_->Update();
 
 	skyDome_->Update();
 
 	// --- PUSH SPACE 点滅 ---
-	pushAlpha_ += pushAlphaDir_ * 2.0f;   // 数値小さいほどゆっくり
+	pushAlpha_ += pushAlphaDir_ * PUSH_ALPHA_SPEED;   // 数値小さいほどゆっくり
 
-	if (pushAlpha_ <= 50.0f)
+	if (pushAlpha_ <= PUSH_ALPHA_MIN)
 	{
-		pushAlpha_ = 50.0f;
-		pushAlphaDir_ = 1.0f;    // フェードインへ
+		pushAlpha_ = PUSH_ALPHA_MIN;
+		pushAlphaDir_ = PUSH_ALPHA_DIR_PLUS;    // フェードインへ
 	}
-	else if (pushAlpha_ >= 255.0f)
+	else if (pushAlpha_ >= PUSH_ALPHA_MAX)
 	{
-		pushAlpha_ = 255.0f;
-		pushAlphaDir_ = -1.0f;   // フェードアウトへ
+		pushAlpha_ = PUSH_ALPHA_MAX;
+		pushAlphaDir_ = PUSH_ALPHA_DIR_MINUS;   // フェードアウトへ
 	}
 
 }
@@ -156,13 +167,19 @@ void TitleScene::Draw(void)
 	MV1DrawModel(movePlanet_.modelId);
 	MV1DrawModel(charactor_.modelId);
 
-	DrawRotaGraph(Application::SCREEN_SIZE_X / 2, 350, 0.7, 0.0, imgTitle_, true);
+	DrawRotaGraph(Application::SCREEN_SIZE_X / 2,
+		TITLE_DRAW_Y,
+		TITLE_DRAW_SCALE,
+		0.0,
+		imgTitle_,
+		true
+	);
 	
 	SetDrawBlendMode(DX_BLENDMODE_ALPHA, (int)pushAlpha_);
 	DrawRotaGraph(
 		Application::SCREEN_SIZE_X / 2,
-		500,
-		1.0,
+		PUSH_DRAW_Y,
+		PUSH_DRAW_SCALE,
 		0.0,
 		imgPush_,
 		true

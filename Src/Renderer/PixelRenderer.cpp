@@ -1,7 +1,12 @@
 #include "PixelRenderer.h"
 
 PixelRenderer::PixelRenderer(PixelMaterial& pixelMaterial) : pixelMaterial_(pixelMaterial)
+	, vertexs_{}
+	, indexes_{}
 {
+	pos_ = { 0, 0 };
+	size_ = { 0, 0 };
+
 }
 
 PixelRenderer::~PixelRenderer(void)
@@ -24,8 +29,8 @@ void PixelRenderer::MakeSquereVertex(Vector2 pos, Vector2 size)
 	for (int i = 0; i < 4; i++)
 	{
 		vertexs_[i].rhw = 1.0f;
-		vertexs_[i].dif = GetColorU8(255, 255, 255, 255);
-		vertexs_[i].spc = GetColorU8(255, 255, 255, 255);
+		vertexs_[i].dif = GetColorU8(COLOR_MAX, COLOR_MAX, COLOR_MAX, COLOR_MAX);
+		vertexs_[i].spc = GetColorU8(COLOR_MAX, COLOR_MAX, COLOR_MAX, COLOR_MAX);
 		vertexs_[i].su = 0.0f;
 		vertexs_[i].sv = 0.0f;
 	}

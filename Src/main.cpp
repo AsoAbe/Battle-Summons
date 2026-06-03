@@ -29,22 +29,6 @@ int WINAPI WinMain(
 	// メモリリーク検出
 	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 
-	// ①生ポインタ
-	//int* test = new int();
-	//delete test;
-
-	// ②ユニークポインタ
-	//std::unique_ptr<int> testI = std::make_unique<int>();
-	//std::unique_ptr<std::string> testS = std::make_unique<std::string>();
-
-	//// ③シェアードポインタ
-	//testSha_ = std::make_shared<int>(5);
-	//// シェアードポインタの参照カウント
-	//int cnt1 = testSha_.use_count();
-	//// 最初は実装しない
-	//TestShared(testSha_);
-	//int cnt4 = testSha_.use_count();
-
 	// インスタンスの生成
 	Application::CreateInstance();
 

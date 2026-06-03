@@ -55,11 +55,11 @@ void Shot::SetParam()
 	timeAlive_ = DEFAULT_ALIVE_TIME;
 	//è’ìÀópãÖëÃîºåa
 	scale = DEFAULT_SCALE * rate;
-	Damage_ = DEFAULT_DAMAGE / rate;
+	Damage_ = static_cast<int>(DEFAULT_DAMAGE / rate);
 
 	if(player_)
 	{
-		player_->Damage(static_cast<int>(Damage_ * rate) * PLAYER_DAMAGE_RATE);
+		player_->Damage(static_cast<int>((Damage_ * rate) * PLAYER_DAMAGE_RATE));
 	}
 	
 }

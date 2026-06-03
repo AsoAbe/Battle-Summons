@@ -32,19 +32,19 @@ public:
 	//一秒間の分割回数
     static constexpr float DEFAULT_FPS = 60.0f;
    
-    // 死亡後ゲームオーバー遅延
+    //死亡後ゲームオーバー遅延
     static constexpr float DEAD_DELAY_TIME = 2.5f;
 
-    // チャージエフェクト高さ
+    //チャージエフェクト高さ
     static constexpr float CHARGE_EFFECT_HEIGHT = 50.0f;
 
-    // ベクトル正規化最小値
+    //ベクトル正規化最小値
     static constexpr float NORMALIZE_MIN_LENGTH = 0.0001f;
 
     //色の最大値
 	static constexpr float COLOR_MAX = 255.0f;
 
-    // 回転補間速度
+    //回転補間速度
     static constexpr float ROTATE_SPEED = 5.0f;
     
     //移動関連
@@ -54,7 +54,7 @@ public:
     static constexpr float ROTATE_LERP_SPEED = 0.1f;    // 回転補間速度
     static constexpr float MIN_MOVE_DISTANCE = 0.001f;  // 最小移動判定距離
     
-    // 通常攻撃関連------------------------------------
+    //通常攻撃関連------------------------------------
     static constexpr int ATTACK_DAMAGE = 20;                 // 攻撃ダメージ
     static constexpr float ATTACK_HIT_START = 0.4f;          // 攻撃判定開始時間
     static constexpr float ATTACK_HIT_END = 0.6f;            // 攻撃判定終了時間
@@ -63,7 +63,7 @@ public:
     static constexpr float ATTACK_RADIUS = 140.0f;           // 攻撃半径
     static constexpr float ATTACK_DISTANCE = 200.0f;         // 攻撃状態へ切り替える距離
 
-    // タックル関連-----------------------------------
+    //タックル関連-----------------------------------
     static constexpr int TACKLE_DAMAGE = 20;                 // タックルダメージ
     static constexpr float TACKLE_START_SPEED = 25.0f;       // タックル初速
     static constexpr float TACKLE_DECELERATION = 1.0f;       // タックル減速量
@@ -85,7 +85,7 @@ public:
     static constexpr float CAPSULE_RADIUS = 60.0f;    // 半径
     //----------------------------------------------------------------
 
-    // 影描画設定-------------------------------------------
+    //影描画設定-------------------------------------------
     static constexpr float SHADOW_HEIGHT = 300.0f;    //地面探索高さ
     static constexpr float SHADOW_SIZE = 120.0f;      //サイズ
     static constexpr float SHADOW_SLIDE_SCALE = 0.5f; //影ポリゴン浮かせ量
@@ -94,12 +94,12 @@ public:
     static constexpr float SHADOW_UV_OFFSET = 0.5f;   //UV中央オフセット
     //-------------------------------------------------------------
     
-    // 着地・押し出し関連------------------------------
+    //着地・押し出し関連------------------------------
     static constexpr float LAND_OFFSET_Y = 2.0f;    // 着地時の地面からの浮かせ量
     static constexpr float WALL_PUSH_POWER = 1.0f;  // 壁押し出し量
  
 
-    // 状態定義
+    //状態定義
     enum class STATE
     {
         NONE,

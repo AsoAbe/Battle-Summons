@@ -11,9 +11,9 @@ class Trans;
 class PixelShaderMaterial;
 class PixelShaderRenderer;
 
-/// <summary>
-/// プレイヤーHPとスコアを描画
-/// </summary>
+
+// プレイヤーHPとスコアを描画
+
 class GamePanel
 {
 public:
@@ -36,26 +36,21 @@ private:
 	Trans* trans_;
 
 	// プレイヤー
-	//Player& player_;
 	std::shared_ptr<Player> player_;
 
 	//敵
-	//EnemyGolem& enemy_;
 	std::shared_ptr<EnemyGolem> enemy_;
 
 	//フレーム数
 	int counter_;
 
-	/// <summary>
-	/// 背景
-	/// </summary>
+	// 背景
 	int bgImg_;
 
 	int barScreen_;
 
 	int color_;
-	/// <summary>
-	/// デストラクタによって呼ばれる
-	/// </summary>
+	
+	// デストラクタによって呼ばれる
 	void Release();
 };
