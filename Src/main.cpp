@@ -10,7 +10,7 @@
 #endif
 
 std::shared_ptr<int> testSha_;
-void TestShared(std::shared_ptr<int> a)
+static void TestShared(std::shared_ptr<int> a)
 {
 	int cnt2 = testSha_.use_count();
 	std::shared_ptr<int> b = a;
