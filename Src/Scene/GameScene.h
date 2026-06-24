@@ -7,7 +7,6 @@ class Stage;
 class SkyDome;
 class Player;
 class PixelMaterial;
-class PixelRenderer;
 class GamePanel;
 class CardManager;
 class BGM;
@@ -31,17 +30,6 @@ public:
 		TUTORIAL_END,	//チュートリアル終了
 		GAMEOVER,		//ゲームオーバー
 		GAMECLEAR		//ゲームクリア
-	};
-
-	// ポストエフェクトモード
-	enum class MODE
-	{
-		MAIN,
-		MONO,
-		SCAN,
-		LENS,
-		VINE,
-		MAX
 	};
 
 	// コンストラクタ
@@ -87,27 +75,5 @@ private:
 
 	//BGM
 	BGM bgm_;
-
-	// ポストエフェクトモード
-	MODE mode_;
-
-	// ポストエフェクト用スクリーン
-	int postEffectScreen_;
-	
-	// ポストエフェクト用(モノクロ)
-	std::unique_ptr<PixelMaterial> monoMaterial_;
-	std::unique_ptr<PixelRenderer> monoRenderer_;
-
-	// ポストエフェクト用(走査線)
-	std::unique_ptr<PixelMaterial> scanMaterial_;
-	std::unique_ptr<PixelRenderer> scanRenderer_;
-
-	// ポストエフェクト用(ビネット)
-	std::unique_ptr<PixelMaterial> vineMaterial_;
-	std::unique_ptr<PixelRenderer> vineRenderer_;
-
-	// ポストエフェクト用(レンズの歪み)
-	std::unique_ptr<PixelMaterial> lensMaterial_;
-	std::unique_ptr<PixelRenderer> lensRenderer_;
 
 };

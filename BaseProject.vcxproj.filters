@@ -135,9 +135,6 @@
     <ClCompile Include="Src\Renderer\PixelMaterial.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="Src\Renderer\PixelRenderer.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
     <ClCompile Include="Src\Renderer\ModelMaterial.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
@@ -269,9 +266,6 @@
     <ClInclude Include="Src\Renderer\PixelMaterial.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Renderer\PixelRenderer.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
     <ClInclude Include="Src\Renderer\ModelMaterial.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
@@ -334,17 +328,9 @@
     <None Include="Src\Shader\Common\Pixel\PixelShader2DHeader.hlsli" />
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="Src\Shader\PostEffect\Monotone.hlsl" />
-    <FxCompile Include="Src\Shader\PostEffect\ScanLine.hlsl" />
-    <FxCompile Include="Src\Shader\PostEffect\Vignette.hlsl" />
-    <FxCompile Include="Src\Shader\PostEffect\LensDistortion.hlsl" />
     <FxCompile Include="Src\Shader\Model\StdModelVS.hlsl" />
     <FxCompile Include="Src\Shader\Model\StdModelPS.hlsl" />
     <FxCompile Include="Src\Shader\Model\NoTexVS.hlsl" />
     <FxCompile Include="Src\Shader\Model\NoTexPS.hlsl" />
-    <FxCompile Include="Src\Shader\Model\MetalModelVS.hlsl" />
-    <FxCompile Include="Src\Shader\Model\MetalModelPS.hlsl" />
-    <FxCompile Include="Src\Shader\Model\WaterVS.hlsl" />
-    <FxCompile Include="Src\Shader\Model\WaterPS.hlsl" />
   </ItemGroup>
 </Project>
