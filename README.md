@@ -6,3 +6,4 @@
        　➂射撃：Q
         ➃砲撃：E
 グレード変更：SHIFT
+プレイ動画URL:https://youtu.be/CeGmxqzSB7w
