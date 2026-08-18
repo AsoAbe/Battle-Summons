@@ -18,6 +18,34 @@ class CannonBase;
 class EnemyGolem : public CharacterBase, public std::enable_shared_from_this<EnemyGolem>
 {
 public:
+    // 無効なハンドルを表す値
+    static constexpr int INVALID_HANDLE = -1;
+
+    // 無効なポリゴンインデックス
+    static constexpr int INVALID_POLYGON_INDEX = -1;
+
+    // 数値の初期値
+    static constexpr float ZERO_VALUE = 0.0f;
+
+    // 色の初期値
+    static constexpr int COLOR_INITIAL_VALUE = 0;
+
+    // ベクトルの初期値
+    static constexpr float VECTOR_ZERO_VALUE = 0.0f;
+
+    // 初期回転補間速度
+    static constexpr float DEFAULT_LOOK_ROT_SPEED = 0.15f;
+
+    // 死亡後のゲームオーバーまでの待機時間
+    static constexpr float GAME_OVER_DELAY_TIME = 1.5f;
+   
+    // 初期スケール
+    static constexpr float INITIAL_SCALE = 1.0f;
+
+    // 初期位置
+    static constexpr float INITIAL_POS_X = 300.0f;
+    static constexpr float INITIAL_POS_Y = 0.0f;
+    static constexpr float INITIAL_POS_Z = 400.0f;
 
     // スピード
     static constexpr float SPEED_MOVE = 5.0f;
@@ -46,6 +74,15 @@ public:
 
     //回転補間速度
     static constexpr float ROTATE_SPEED = 5.0f;
+
+    // ゴーレムの向き補正値
+    static constexpr float MODEL_FORWARD_REVERSE = -1.0f;
+
+    // 60FPS時の1フレーム分の時間
+    static constexpr float SECOND_PER_FRAME = 1.0f / DEFAULT_FPS;
+
+    // 1回の描画で使用する影ポリゴンの枚数
+    static constexpr int SHADOW_POLYGON_COUNT = 1;
     
     //移動関連
     static constexpr float DEFAULT_MOVE_SPEED = 4.5f;   // 通常移動速度
@@ -75,6 +112,7 @@ public:
     static constexpr float DEFAULT_TACKLE_RADIUS = 120.0f;   // 攻撃判定半径
     static constexpr float TACKLE_START_DISTANCE = 800.0f;   // 開始する距離
     static constexpr float CHARGE_EFFECT_SCALE = 30.0f;      // タックルチャージエフェクト拡大率
+    static constexpr float REST_TIME = 2.0f;                 // タックル終了後に休憩する時間
     //--------------------------------------------------------------
     
     //カプセル関連-------------------------------------------
@@ -98,7 +136,14 @@ public:
     static constexpr float LAND_OFFSET_Y = 2.0f;    // 着地時の地面からの浮かせ量
     static constexpr float WALL_PUSH_POWER = 1.0f;  // 壁押し出し量
  
-
+    //アニメーション関連------------------------------
+    static constexpr float ANIM_FRAME_IDLE = 60.0f;
+    static constexpr float ANIM_FRAME_RUN = 40.0f;
+    static constexpr float ANIM_FRAME_ATTACK = 60.0f;
+    static constexpr float ANIM_FRAME_TACKLE = 60.0f;
+    static constexpr float ANIM_FRAME_REST = 20.0f;
+    static constexpr float ANIM_FRAME_DEAD = 60.0f;
+  
     //状態定義
     enum class STATE
     {

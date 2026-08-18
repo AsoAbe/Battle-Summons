@@ -4,7 +4,7 @@
 
 Transform::Transform(void)
 {
-	modelId = -1;
+	modelId = INVALID_MODEL_ID;
 
 	scl = AsoUtility::VECTOR_ONE;
 	rot = AsoUtility::VECTOR_ZERO;
@@ -66,7 +66,7 @@ void Transform::Update(void)
 	mat = MMult(mat, matPos);
 
 	// 行列をモデルに判定
-	if (modelId != -1)
+	if (modelId != INVALID_MODEL_ID)
 	{
 		MV1SetMatrix(modelId, mat);
 	}
@@ -86,14 +86,20 @@ void Transform::SetModel(int model)
 
 void Transform::MakeCollider(Collider::TYPE type)
 {
-
-	if (modelId == -1)
+	// モデルが設定されていない場合はコライダーを生成しない
+	if (modelId == INVALID_MODEL_ID)
 	{
 		return;
 	}
 
 	collider = std::make_shared<Collider>(type, modelId);
-	int ret = MV1SetupCollInfo(modelId, -1, 1, 1, 1);
+	// モデル全体のコリジョン情報を設定する
+	int ret = MV1SetupCollInfo(
+		modelId,
+		COLLISION_INFO_ALL,
+		COLLISION_INFO_PARAM,
+		COLLISION_INFO_PARAM,
+		COLLISION_INFO_PARAM);
 
 }
 

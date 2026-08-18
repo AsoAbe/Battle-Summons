@@ -6,7 +6,9 @@ class Resource
 {
 
 public:
-	
+	// 無効な画像ハンドル
+	static constexpr int INVALID_HANDLE = -1;
+
 	// リソースタイプ
 	enum class TYPE
 	{

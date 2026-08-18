@@ -45,23 +45,27 @@ void CharacterBase::Collision(void)
 	// ---------------------------------------------
 	//  落下判定（高さが -1000 以下 = ステージ外）
 	// ---------------------------------------------
-	if (movedPos_.y < -1000.0f)
+	if (movedPos_.y < FALL_LIMIT_Y)
 	{
-		// ステージ中心（例として (0,0,0)）方向へ少し寄せる
-		VECTOR stageCenter = VGet(0.0f, 0.0f, 0.0f);
+		// ステージ中心へ戻す
+		VECTOR stageCenter =
+			VGet(STAGE_CENTER_X, STAGE_CENTER_Y, STAGE_CENTER_Z);
 
-		// LastPos_ → 中心への方向
+		// 現在位置からステージ中心への方向
 		VECTOR dir = VSub(stageCenter, LastPos_);
 		dir = VNorm(dir);
 
-		// ★ 戻す位置＝直前位置 ＋ 中心方向へ 50 だけ寄せる
-		movedPos_ = VAdd(LastPos_, VScale(dir, 100.0f));
+		// ステージ中心方向へ移動
+		movedPos_ = VAdd(
+			LastPos_,
+			VScale(dir, RETURN_DISTANCE)
+		);
 
-		// ★ 少しだけ浮かせて衝突が安定するように
-		movedPos_.y = 5.0f;
+		// 少し浮かせて衝突を安定させる
+		movedPos_.y = RESET_HEIGHT_Y;
 
-		// 重力リセット
-		jumpPow_ = VGet(0, 0, 0);
+		// 重力・ジャンプ量をリセット
+		jumpPow_ = AsoUtility::VECTOR_ZERO;
 	}
 
 	// 移動
@@ -82,12 +86,12 @@ void CharacterBase::CollisionGravity(void)
 	VECTOR dirUpGravity = AsoUtility::DIR_U;
 
 	// 重力の強さ
-	float gravityPow = 100.0f;
-	float checkPow = 10.0f;
+	float gravityPow = GRAVITY_CHECK_HEIGHT;
+	float checkPow = GRAVITY_CHECK_DISTANCE;
 
 
 	VECTOR rayStart =
-		VAdd(movedPos_, VScale(dirUpGravity, gravityPow + checkPow * 2.0f));
+		VAdd(movedPos_, VScale(dirUpGravity, gravityPow + checkPow * RAY_EXTRA_DISTANCE));
 
 	VECTOR rayEnd =
 		VAdd(movedPos_, VScale(dirGravity, checkPow));
@@ -101,7 +105,7 @@ void CharacterBase::CollisionGravity(void)
 		}
 
 		auto hit = MV1CollCheck_Line(
-			collider->modelId_, -1, rayStart, rayEnd);
+			collider->modelId_, INVALID_HANDLE, rayStart, rayEnd);
 		// 最初は上の行のように実装して、木の上に登ってしまうことを確認する
 		//着地判定(高さ)
 		if (hit.HitFlag > 0 && VDot(dirGravity, jumpPow_) > 0.0f)
@@ -132,7 +136,7 @@ void CharacterBase::CollisionCapsule(void)
 			continue;
 		}
 		auto hits = MV1CollCheck_Capsule(
-			collider->modelId_, -1,
+			collider->modelId_, INVALID_HANDLE,
 			cap.GetPosTop(), cap.GetPosDown(), cap.GetRadius());
 
 		for (int i = 0; i < hits.HitNum; i++)
@@ -140,7 +144,7 @@ void CharacterBase::CollisionCapsule(void)
 
 			auto hit = hits.Dim[i];
 
-			for (int tryCnt = 0; tryCnt < 10; tryCnt++)
+			for (int tryCnt = 0; tryCnt < COLLISION_RETRY_COUNT; tryCnt++)
 			{
 
 				int pHit = HitCheck_Capsule_Triangle(
@@ -179,15 +183,6 @@ void CharacterBase::CalcGravityPow(void)
 	VECTOR gravity = VScale(dirGravity, gravityPow);
 	jumpPow_ = VAdd(jumpPow_, gravity);
 
-	// 最初は実装しない。地面と突き抜けることを確認する。
-	// 内積
-	//float dot = VDot(dirGravity, jumpPow_);
-	//if (dot >= 0.0f)
-	//{
-	//	// 重力方向と反対方向(マイナス)でなければ、ジャンプ力を無くす
-	//	jumpPow_ = gravity;
-	//}
-
 }
 
 void CharacterBase::OnCapsuleHit(const MV1_COLL_RESULT_POLY& hit, const Capsule& cap)
@@ -196,7 +191,7 @@ void CharacterBase::OnCapsuleHit(const MV1_COLL_RESULT_POLY& hit, const Capsule&
 	VECTOR n = hit.Normal;
 
 	// 今まで通りの処理
-	movedPos_ = VAdd(movedPos_, VScale(n, 1.0f));
+	movedPos_ = VAdd(movedPos_, VScale(n, CAPSULE_PUSH_DISTANCE));
 }
 
 VECTOR CharacterBase::GetCapsuleTop(void) const
@@ -211,7 +206,7 @@ VECTOR CharacterBase::GetCapsuleBottom(void) const
 
 float CharacterBase::GetRadius(void) const
 {
-    return capsule_ ? capsule_->GetRadius() : 0.0f;
+    return capsule_ ? capsule_->GetRadius() : INITIAL_VALUE;
 }
 
 void CharacterBase::AddCollider(std::weak_ptr<Collider> collider)

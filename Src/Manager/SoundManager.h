@@ -4,6 +4,24 @@
 class SoundManager
 {
 public:
+	// 無効なサウンドハンドル
+	static constexpr int INVALID_HANDLE = -1;
+
+	// 数値の初期値
+	static constexpr float INITIAL_VALUE = 0.0f;
+
+	// 1フレーム分の時間計算に使用する値
+	static constexpr float ONE_FRAME = 1.0f;
+
+	// デバッグ表示のX座標
+	static constexpr int DEBUG_DRAW_X = 0;
+
+	// デバッグ表示のY座標
+	static constexpr int DEBUG_DRAW_Y = 0;
+
+	// デバッグ表示の文字色（白）
+	static constexpr unsigned int DEBUG_TEXT_COLOR = 0xffffff;
+
 	struct SoundData
 	{
 		int handle;

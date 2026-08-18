@@ -14,7 +14,12 @@ class Transform
 {
 
 public:
+	// 無効なモデルハンドル
+	static constexpr int INVALID_MODEL_ID = -1;
 
+	// コリジョン情報の設定値
+	static constexpr int COLLISION_INFO_ALL = -1;
+	static constexpr int COLLISION_INFO_PARAM = 1;
 	// コンストラクタ
 	Transform(void);
 	Transform(int model);

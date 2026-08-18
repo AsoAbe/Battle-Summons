@@ -9,7 +9,7 @@ class Camera
 public:
 
 	// カメラスピード(度)
-	static constexpr float SPEED = 1.0f;
+	static constexpr float SPEED = 3.0f;
 
 	// カメラクリップ：NEAR
 	static constexpr float CAMERA_NEAR = 10.0f;
@@ -30,6 +30,11 @@ public:
 	static constexpr float LIMIT_X_UP_RAD = 40.0f * (DX_PI_F / 180.0f);
 	static constexpr float LIMIT_X_DW_RAD = 15.0f * (DX_PI_F / 180.0f);
 	
+	// カメラの初期X回転角度(度)
+	static constexpr float DEFAULT_CAMERA_ROT_X_DEG = 30.0f;
+	static constexpr float DEFAULT_CAMERA_ROT_Y_DEG = 0.0f;
+	static constexpr float DEFAULT_CAMERA_ROT_Z_DEG = 0.0f;
+
 	// カメラモード
 	enum class MODE
 	{

@@ -27,10 +27,10 @@ SceneManager::SceneManager(void)
 
 	isSceneChanging_ = false;
 
-	deltaTime_ = 1.0f / 60.0f;
-	totalTime_ = 0.0f;
+	deltaTime_ = DEFAULT_DELTA_TIME;
+	totalTime_ = INITIAL_VALUE;
 
-	mainScreen_ = -1;
+	mainScreen_ = INVALID_HANDLE;
 
 	isPlayerAlive_ = true;
 }
@@ -83,7 +83,11 @@ void SceneManager::Init3D(void)
 {
 
 	// 背景色設定
-	SetBackgroundColor(0, 200, 139);
+	SetBackgroundColor(
+		BG_RED,
+		BG_GREEN,
+		BG_BLUE
+	);
 
 	// Zバッファを有効にする
 	SetUseZBuffer3D(true);
@@ -98,13 +102,26 @@ void SceneManager::Init3D(void)
 	SetUseLighting(true);
 	
 	// ライトの設定
-	ChangeLightTypeDir({ 0.3f, -0.7f, 0.8f });
-	//ChangeLightTypeDir({ 0.0f, 0.0f, 0.5f });
+	ChangeLightTypeDir(
+		{
+			LIGHT_DIR_X,
+			LIGHT_DIR_Y,
+			LIGHT_DIR_Z
+		}
+	);
 
 	// フォグ設定
 	SetFogEnable(true);
-	SetFogColor(5, 5, 5);
-	SetFogStartEnd(10000.0f, 20000.0f);
+	SetFogColor(
+		FOG_RED,
+		FOG_GREEN,
+		FOG_BLUE
+	);
+
+	SetFogStartEnd(
+		FOG_START,
+		FOG_END
+	);
 
 }
 
@@ -119,7 +136,7 @@ void SceneManager::Update(void)
 	// デルタタイム
 	auto nowTime = std::chrono::system_clock::now();
 	deltaTime_ = static_cast<float>(
-		std::chrono::duration_cast<std::chrono::nanoseconds>(nowTime - preTime_).count() / 1000000000.0);
+		std::chrono::duration_cast<std::chrono::nanoseconds>(nowTime - preTime_).count() / NANOSECONDS_PER_SECOND);
 	preTime_ = nowTime;
 
 	// ゲーム実行時間
@@ -172,7 +189,12 @@ void SceneManager::Draw(void)
 
 	// 背面スクリーンにメインスクリーンを描画
 	SetDrawScreen(DX_SCREEN_BACK);
-	DrawGraph(0, 0, mainScreen_, true);
+	DrawGraph(
+		SCREEN_ORIGIN,
+		SCREEN_ORIGIN,
+		mainScreen_,
+		true
+	);
 
 	DrawShots();
 }
@@ -207,7 +229,6 @@ SceneManager::SCENE_ID SceneManager::GetSceneID(void)
 
 float SceneManager::GetDeltaTime(void) const
 {
-	//return 1.0f / 60.0f;
 	return deltaTime_;
 }
 
@@ -238,7 +259,7 @@ void SceneManager::SetStage(std::shared_ptr<Stage> stage)
 
 void SceneManager::ResetDeltaTime(void)
 {
-	deltaTime_ = 0.016f;
+	deltaTime_ = DEFAULT_DELTA_TIME;
 	preTime_ = std::chrono::system_clock::now();
 }
 

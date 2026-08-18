@@ -130,9 +130,9 @@ void Camera::SetDefault(void)
 	// ƒJƒƒ‰‚Ìã•ûŒü
 	cameraUp_ = AsoUtility::DIR_U;
 
-	angles_.x = AsoUtility::Deg2RadF(30.0f);
-	angles_.y = 0.0f;
-	angles_.z = 0.0f;
+	angles_.x = AsoUtility::Deg2RadF(DEFAULT_CAMERA_ROT_X_DEG);
+	angles_.y = DEFAULT_CAMERA_ROT_Y_DEG;
+	angles_.z = DEFAULT_CAMERA_ROT_Z_DEG;
 
 	rot_ = Quaternion();
 
@@ -171,7 +171,7 @@ void Camera::ProcessRot(void)
 
 	auto& ins = InputManager::GetInstance();
 
-	float movePow = 3.0f;
+	float movePow = SPEED;
 
 	// ƒJƒƒ‰‰ñ“]
 	if (ins.IsNew(KEY_INPUT_RIGHT))

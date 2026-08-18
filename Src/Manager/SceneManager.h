@@ -15,8 +15,45 @@ class ShotBase;
 
 class SceneManager
 {
-
 public:
+	// 無効なグラフィックハンドル
+	static constexpr int INVALID_HANDLE = -1;
+
+	// 数値の初期値
+	static constexpr float INITIAL_VALUE = 0.0f;
+
+	// デルタタイムの基準フレームレート
+	static constexpr float DEFAULT_FRAME_RATE = 60.0f;
+
+	// 1秒をナノ秒に変換する値
+	static constexpr double NANOSECONDS_PER_SECOND = 1000000000.0;
+
+	// デルタタイムの初期値
+	static constexpr float DEFAULT_DELTA_TIME = 1.0f / 60.0f;
+
+	// 背景色
+	static constexpr int BG_RED = 0;
+	static constexpr int BG_GREEN = 200;
+	static constexpr int BG_BLUE = 139;
+
+	// ライトの方向
+	static constexpr float LIGHT_DIR_X = 0.3f;
+	static constexpr float LIGHT_DIR_Y = -0.7f;
+	static constexpr float LIGHT_DIR_Z = 0.8f;
+
+	// フォグの色
+	static constexpr int FOG_RED = 5;
+	static constexpr int FOG_GREEN = 5;
+	static constexpr int FOG_BLUE = 5;
+
+	// フォグ開始距離
+	static constexpr float FOG_START = 10000.0f;
+
+	// フォグ終了距離
+	static constexpr float FOG_END = 20000.0f;
+
+	// 画面座標の原点
+	static constexpr int SCREEN_ORIGIN = 0;
 
 	// シーン管理用
 	enum class SCENE_ID

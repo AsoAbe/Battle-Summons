@@ -11,6 +11,24 @@ class Shot;
 class CardManager
 {
 public:
+	// 無効な画像ハンドル
+	static constexpr int INVALID_HANDLE = -1;
+
+	// Eキー表示位置のX座標調整値
+	static constexpr int KEY_E_OFFSET_X = 35;
+
+	// Shotカードの表示位置
+	static constexpr int SHOT_CARD_POSITION = 1;
+
+	// Cannonカードの表示位置
+	static constexpr int CANNON_CARD_POSITION = 2;
+
+	// キー文字の描画色（黒）
+	static constexpr unsigned int KEY_TEXT_COLOR = 0x000000;
+
+	// カード・アイコンの回転角度（回転なし）
+	static constexpr double NO_ROTATION = 0.0;
+
 	// UI座標
 	static constexpr int CARD_BASE_X = 10;
 	static constexpr int CARD_BASE_Y = 550;

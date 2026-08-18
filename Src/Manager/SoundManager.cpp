@@ -38,7 +38,7 @@ SoundManager::SoundData::SoundData(int handle, int volume)
 {
 	this->handle = handle;
 	this->volume = volume;
-	ct = 0;
+	ct = INITIAL_VALUE;
 }
 
 void SoundManager::CreateInstance(void)
@@ -63,13 +63,19 @@ SoundManager& SoundManager::GetInstance()
 void SoundManager::Update(void)
 {
 	//fpsから1フレームの時間を入力する
-	CtCountDown(1.0f / Application::FPS);
+	CtCountDown(ONE_FRAME / Application::FPS);
 }
 
 void SoundManager::Draw(void)
 {
 #ifdef _DEBUG
-	DrawFormatString(0, 0, 0xffffff, "LoadedSoundCount = %d", loadedSound_.size());
+	DrawFormatString(
+		DEBUG_DRAW_X,
+		DEBUG_DRAW_Y,
+		DEBUG_TEXT_COLOR,
+		"LoadedSoundCount = %d",
+		loadedSound_.size()
+	);
 #endif
 }
 
@@ -85,13 +91,13 @@ void SoundManager::CtCountDown(float deltaTime)
 	//クールタイム経過
 	for (auto& s : loadedSound_)
 	{
-		if (s.second.ct > 0)
+		if (s.second.ct > INITIAL_VALUE)
 		{
 			s.second.ct -= deltaTime;
 		}
 		else
 		{
-			s.second.ct = 0.0f;
+			s.second.ct = INITIAL_VALUE;
 		}
 
 	}
@@ -116,11 +122,11 @@ void SoundManager::LoadSound(SOUND_ID sound, int volume)
 		//既に存在する
 		return;
 	}
-	int handle = -1;
+	int handle = INVALID_HANDLE;
 	if (sound != SOUND_ID::NONE)
 	{
 		handle = LoadSoundMem(GetSoundPath(sound).c_str());
-		if (handle != -1)
+		if (handle != INVALID_HANDLE)
 		{
 			ChangeVolumeSoundMem(volume, handle);
 		}
@@ -135,11 +141,11 @@ void SoundManager::LoadBGM(SOUND_ID sound, int volume)
 		//既に存在する
 		return;
 	}
-	int handle = -1;
+	int handle = INVALID_HANDLE;
 	if (sound != SOUND_ID::NONE)
 	{
 		handle = LoadSoundMem(GetBGMPath(sound).c_str());
-		if (handle != -1)
+		if (handle != INVALID_HANDLE)
 		{
 			ChangeVolumeSoundMem(volume, handle);
 		}
@@ -196,7 +202,7 @@ void SoundManager::ChangeBGM(SOUND_ID sound, bool load, int volume)
 {
     // 1) 停止
     const SoundData* playingData = GetSoundData(playingBgm_);
-    if (playingData && playingData->handle != -1)
+    if (playingData && playingData->handle != INVALID_HANDLE)
         StopSoundMem(playingData->handle);
 
     if (sound == SOUND_ID::NONE)
@@ -392,7 +398,7 @@ void SoundManager::ChangeSoundVolume(SOUND_ID sound, int volume)
 	}
 	int& volumeData = loadedSound_.at(sound).volume;
 	const int& handle = loadedSound_.at(sound).handle;
-	if (volumeData == volume || handle < 0)
+	if (volumeData == volume || handle < INVALID_HANDLE)
 	{
 		//書き換えなし
 		return;

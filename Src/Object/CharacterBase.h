@@ -13,6 +13,41 @@ class SceneManager;
 class CharacterBase
 {
 public:
+    // 初期値
+    static constexpr float INITIAL_VALUE = 0.0f;
+
+    // 無効なハンドル
+    static constexpr int INVALID_HANDLE = -1;
+
+    // 落下判定の限界高さ
+    static constexpr float FALL_LIMIT_Y = -1000.0f;
+
+    // ステージ中心座標
+    static constexpr float STAGE_CENTER_X = 0.0f;
+    static constexpr float STAGE_CENTER_Y = 0.0f;
+    static constexpr float STAGE_CENTER_Z = 0.0f;
+
+    // 落下後にステージ中心方向へ戻す距離
+    static constexpr float RETURN_DISTANCE = 100.0f;
+
+    // 落下後に設定する高さ
+    static constexpr float RESET_HEIGHT_Y = 5.0f;
+
+    // 重力方向への判定距離
+    static constexpr float GRAVITY_CHECK_HEIGHT = 100.0f;
+
+    // 地面との衝突判定を行う距離
+    static constexpr float GRAVITY_CHECK_DISTANCE = 10.0f;
+
+    // レイ開始位置に追加する距離の倍率
+    static constexpr float RAY_EXTRA_DISTANCE = 2.0f;
+
+    // カプセル衝突時の押し出し距離
+    static constexpr float CAPSULE_PUSH_DISTANCE = 1.0f;
+
+    // カプセル衝突判定の最大試行回数
+    static constexpr int COLLISION_RETRY_COUNT = 10;
+    
     CharacterBase();
     virtual ~CharacterBase();
 

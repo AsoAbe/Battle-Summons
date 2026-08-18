@@ -1,13 +1,14 @@
 #include <DxLib.h>
+#include "../../Utility/AsoUtility.h"
 #include "Transform.h"
 #include "Capsule.h"
 
 Capsule::Capsule(const Transform& parent) : transformParent_(parent)
 {
-	radius_ = 0.0f;
-	localPosTop_ = { 0.0f, 0.0f, 0.0f };
-	localPosDown_ = { 0.0f, 0.0f, 0.0f };
-	offset_ = VGet(0.0f, 0.0f, 0.0f); // 初期オフセットなし
+	radius_ = INITIAL_VALUE;
+	localPosTop_ = AsoUtility::VECTOR_ZERO;
+	localPosDown_ = AsoUtility::VECTOR_ZERO;
+	offset_ = VGet(INITIAL_VALUE, INITIAL_VALUE, INITIAL_VALUE); // 初期オフセットなし
 }
 
 Capsule::Capsule(const Capsule& base, const Transform& parent) : transformParent_(parent)
@@ -27,11 +28,11 @@ void Capsule::Draw(void)
 
 	// 上の球体
 	VECTOR pos1 = GetPosTop();
-	DrawSphere3D(pos1, radius_, 5, COLOR, COLOR, false);
+	DrawSphere3D(pos1, radius_, CAPSULE_SPHERE_SEGMENTS, COLOR, COLOR, false);
 
 	// 下の球体
 	VECTOR pos2 = GetPosDown();
-	DrawSphere3D(pos2, radius_, 5, COLOR, COLOR, false);
+	DrawSphere3D(pos2, radius_, CAPSULE_SPHERE_SEGMENTS, COLOR, COLOR, false);
 
 	VECTOR dir;
 	VECTOR s;
@@ -62,7 +63,8 @@ void Capsule::Draw(void)
 	DrawLine3D(s, e, COLOR);
 
 	// カプセルの中心
-	DrawSphere3D(GetCenter(), 5.0f, 10, COLOR, COLOR, true);
+	DrawSphere3D(GetCenter(), CENTER_RADIUS,
+		CENTER_SPHERE_SEGMENTS, COLOR, COLOR, true);
 
 }
 
@@ -98,8 +100,7 @@ VECTOR Capsule::GetPosDown(void) const
 
 VECTOR Capsule::GetRotPos(const VECTOR& localPos) const
 {
-	//VECTOR localRotPos = transformParent_.quaRot.PosAxis(localPos);
-	//return VAdd(transformParent_.pos, localRotPos);
+	
 	VECTOR localWithOffset = VAdd(localPos, offset_);
 	VECTOR localRotPos = transformParent_.quaRot.PosAxis(localWithOffset);
 	return VAdd(transformParent_.pos, localRotPos);
@@ -126,7 +127,7 @@ VECTOR Capsule::GetCenter(void) const
 	VECTOR down = GetPosDown();
 
 	VECTOR diff = VSub(top, down);
-	return VAdd(down, VScale(diff, 0.5f));
+	return VAdd(down, VScale(diff, CENTER_RATIO));
 }
 
 void Capsule::SetOffset(const VECTOR& offset)

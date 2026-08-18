@@ -22,7 +22,7 @@ CardManager::CardManager()
     shot_ = nullptr;
     cannon_ = nullptr;
     base_ = nullptr;
-    cardImgBr_ = cardImgSl_ = cardImgGo_ = -1;
+    cardImgBr_ = cardImgSl_ = cardImgGo_ = INVALID_HANDLE;
 
     cardUsedThisFrame_ = false;
 }
@@ -110,20 +110,20 @@ void CardManager::Draw()
     int baseX = CARD_STRING_X;
     int baseY = CARD_STRING_Y;
     int interval = CARD_INTERVAL;
-    DrawFormatString(baseX, baseY, 0x000000, "Q", true);
-    DrawFormatString(baseX * 2 - 35, baseY, 0x000000, "E", true);
+    DrawFormatString(baseX, baseY, KEY_TEXT_COLOR, "Q", true);
+    DrawFormatString(baseX * CANNON_CARD_POSITION - KEY_E_OFFSET_X, baseY, KEY_TEXT_COLOR, "E", true);
 
 }
 
 bool CardManager::Release()
 {
 
-    if (cardImgBr_ != -1) DeleteGraph(cardImgBr_);
-    if (cardImgSl_ != -1) DeleteGraph(cardImgSl_);
-    if (cardImgGo_ != -1) DeleteGraph(cardImgGo_);
+    if (cardImgBr_ != INVALID_HANDLE) DeleteGraph(cardImgBr_);
+    if (cardImgSl_ != INVALID_HANDLE) DeleteGraph(cardImgSl_);
+    if (cardImgGo_ != INVALID_HANDLE) DeleteGraph(cardImgGo_);
 
-    if (iconShot_ != -1) DeleteGraph(iconShot_);
-    if (iconCannon_ != -1) DeleteGraph(iconCannon_);
+    if (iconShot_ != INVALID_HANDLE) DeleteGraph(iconShot_);
+    if (iconCannon_ != INVALID_HANDLE) DeleteGraph(iconCannon_);
 
     return true;
 }
@@ -148,7 +148,7 @@ void CardManager::DoCard(EFFECT effectId)
             auto shot = std::make_shared<Shot>(player_, enemy_);
             shot->Activate(static_cast<CardBase::CARD_RARITY>(rarity_));
 
-            // ★ base_ に入れない
+            // base_ に入れない
             SceneManager::GetInstance().AddShot(shot);
             break;
         }
@@ -210,18 +210,18 @@ void CardManager::LoadIcons()
     int baseY = CARD_BASE_Y;
     int interval = CARD_INTERVAL;
 
-    // ★ すべて「カード中心(100,500)からのオフセット」で管理
+    // すべて「カード中心(100,500)からのオフセット」で管理
     cardList_.clear();
-    cardList_.push_back({ EFFECT::SHOT,iconShot_,  baseX + interval * 1, baseY });
-    cardList_.push_back({ EFFECT::CANNON, iconCannon_, baseX + interval * 2, baseY });
+    cardList_.push_back({ EFFECT::SHOT,iconShot_,  baseX + interval * SHOT_CARD_POSITION, baseY });
+    cardList_.push_back({ EFFECT::CANNON, iconCannon_, baseX + interval * CANNON_CARD_POSITION, baseY });
 
 }
 
 void CardManager::DrawCardIcon()
 {
-    int cardImg = -1;
+    int cardImg = INVALID_HANDLE;
 
-    // ★ レア度によって使用する枠画像を変更
+    // レア度によって使用する枠画像を変更
     switch (rarity_)
     {
     case CARD::BRONZE: cardImg = cardImgBr_; break;
@@ -232,9 +232,9 @@ void CardManager::DrawCardIcon()
     for (auto& c : cardList_)
     {
         // レア度に応じた枠を描画
-        DrawRotaGraph(c.x, c.y, CARD_DRAW_SCALE, 0.0, cardImg, TRUE);
+        DrawRotaGraph(c.x, c.y, CARD_DRAW_SCALE, NO_ROTATION, cardImg, TRUE);
 
         // アイコン（固定）
-        DrawRotaGraph(c.x, c.y , ICON_DRAW_SCALE, 0.0, c.iconImg, TRUE);
+        DrawRotaGraph(c.x, c.y , ICON_DRAW_SCALE, NO_ROTATION, c.iconImg, TRUE);
     }
 }

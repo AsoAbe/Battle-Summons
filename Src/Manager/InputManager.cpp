@@ -1,4 +1,5 @@
 #include <DxLib.h>
+#include "../Utility/AsoUtility.h"
 #include "InputManager.h"
 
 InputManager* InputManager::instance_ = nullptr;
@@ -180,7 +181,7 @@ bool InputManager::IsTrgMouseRight(void) const
 
 InputManager::InputManager(void)
 {
-	mouseInput_ = -1;
+	mouseInput_ = INVALID_HANDLE;
 }
 
 const InputManager::Info& InputManager::Find(int key) const
@@ -361,7 +362,7 @@ InputManager::JOYPAD_IN_STATE InputManager::GetJPadInputState(JOYPAD_NO no)
 
 VECTOR InputManager::GetDirectionXZAKey(int aKeyX, int aKeyY)
 {
-	VECTOR ret = { 0.0f, 0.0f, 0.0f };
+	VECTOR ret = AsoUtility::VECTOR_ZERO;
 	// スティックの個々の入力値は、
 	// -1000.0f ～ 1000.0f の範囲で返ってくるが、
 	// X:1000.0f、Y:1000.0fになることは無い(1000と500くらいが最大)

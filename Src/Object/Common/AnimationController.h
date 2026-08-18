@@ -7,6 +7,26 @@ class AnimationController
 {
 	
 public :
+	// 無効なアニメーションID
+	static constexpr int INVALID_ANIMATION_ID = -1;
+
+	// 初期値
+	static constexpr float INITIAL_VALUE = 0.0f;
+
+	// アニメーション番号の初期値
+	static constexpr int DEFAULT_ANIMATION_INDEX = 0;
+
+	// 複数アニメーション判定に使用する最小アニメーション数
+	static constexpr int MULTI_ANIMATION_COUNT = 1;
+
+	// アニメーション番号
+	static constexpr int DEFAULT_ANIMATION_NUMBER = 1;
+
+	// 逆再生を表す値
+	static constexpr float REVERSE_VALUE = -1.0f;
+
+	// 正方向再生を表す値
+	static constexpr float FORWARD_VALUE = 1.0f;
 
 	// アニメーションデータ
 	struct Animation

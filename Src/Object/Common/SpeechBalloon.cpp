@@ -15,10 +15,10 @@ SpeechBalloon::SpeechBalloon(TYPE type, const Transform& parent) : transformPare
 	image_ = res.handleId_;
 
 	isVisiblePermanent_ = true;
-	visibleTime_ = -1.0f;
+	visibleTime_ = INITIAL_VISIBLE_TIME;
 
-	pos_ = { 0.0f, 0.0f, 0.0f };
-	localPos_ = { 0.0f, 0.0f, 0.0f };
+	pos_ = AsoUtility::VECTOR_ZERO;
+	localPos_ = AsoUtility::VECTOR_ZERO;;
 
 }
 
@@ -32,7 +32,7 @@ void SpeechBalloon::Draw(void)
 	if (!isVisiblePermanent_)
 	{
 		visibleTime_ -= SceneManager::GetInstance().GetDeltaTime();
-		if (visibleTime_ < 0.0f)
+		if (visibleTime_ < INITIAL_VISIBLE_TIME)
 		{
 			return;
 		}
@@ -59,11 +59,11 @@ void SpeechBalloon::DrawTextOrg(void)
 {
 
 	// カメラのSetCameraNearFarから外れていた場合、表示しない
-	if (pos_.z > 0.0f && pos_.z < 1.0f)
+	if (pos_.z > SCREEN_DEPTH_MIN && pos_.z < SCREEN_DEPTH_MAX)
 	{
 		DrawFormatString(
 			static_cast<int>(pos_.x), static_cast<int>(pos_.y),
-			0xdd0000, "%s", text_.c_str());
+			TEXT_COLOR, "%s", text_.c_str());
 	}
 
 }
@@ -72,14 +72,19 @@ void SpeechBalloon::DrawSpeech(void)
 {
 
 	// カメラのSetCameraNearFarから外れていた場合、表示しない
-	if (pos_.z > 0.0f && pos_.z < 1.0f)
+	if (pos_.z > SCREEN_DEPTH_MIN && pos_.z < SCREEN_DEPTH_MAX)
 	{
 		int x = AsoUtility::Round(pos_.x);
 		int y = AsoUtility::Round(pos_.y);
-		DrawRotaGraph(x, y, 0.5f, 0.0f, image_, true);
+		DrawRotaGraph(x, y, SPEECH_DRAW_SCALE, DRAW_ANGLE, image_, true);
 		int len = (int)strlen(text_.c_str());
 		int width = GetDrawStringWidth(text_.c_str(), len);
-		DrawFormatString(x - (width / 2), y - 15, 0x000000, "%s", text_.c_str());
+		DrawFormatString(
+			x - (width / TEXT_CENTER_DIVISOR),
+			y - SPEECH_TEXT_OFFSET_Y,
+			SPEECH_TEXT_COLOR,
+			"%s",
+			text_.c_str());
 	}
 
 }

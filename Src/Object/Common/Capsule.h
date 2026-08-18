@@ -6,7 +6,20 @@ class Capsule
 {
 
 public :
+	// 初期値
+	static constexpr float INITIAL_VALUE = 0.0f;
 
+	// カプセルのデバッグ表示に使用する球体の分割数
+	static constexpr int CAPSULE_SPHERE_SEGMENTS = 5;
+
+	// カプセル中心のデバッグ表示に使用する球体の半径
+	static constexpr float CENTER_RADIUS = 5.0f;
+
+	// カプセル中心のデバッグ表示に使用する球体の分割数
+	static constexpr int CENTER_SPHERE_SEGMENTS = 10;
+
+	// カプセル中心の位置を求めるための中間値
+	static constexpr float CENTER_RATIO = 0.5f;
 	// デバッグ時の簡易カプセル表示の色
 	static constexpr int COLOR = 0xffffff;
 

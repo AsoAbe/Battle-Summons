@@ -7,6 +7,9 @@ class InputManager
 {
 
 public:
+	// 無効な画像ハンドル
+	static constexpr int INVALID_HANDLE = -1;
+
 	// マウスボタン数
 	static constexpr int MOUSE_BUTTON_NUM = 2;
 

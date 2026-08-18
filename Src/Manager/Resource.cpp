@@ -7,12 +7,12 @@ Resource::Resource(void)
 	type_ = TYPE::NONE;
 	path_ = "";
 
-	numX_ = -1;
-	numY_ = -1;
-	sizeX_ = -1;
-	sizeY_ = -1;
+	numX_ = INVALID_HANDLE;
+	numY_ = INVALID_HANDLE;
+	sizeX_ = INVALID_HANDLE;
+	sizeY_ = INVALID_HANDLE;
 
-	handleId_ = -1;
+	handleId_ = INVALID_HANDLE;
 }
 
 Resource::Resource(TYPE type, const std::string& path)
@@ -20,12 +20,12 @@ Resource::Resource(TYPE type, const std::string& path)
 	type_ = type;
 	path_ = path;
 
-	numX_ = -1;
-	numY_ = -1;
-	sizeX_ = -1;
-	sizeY_ = -1;
+	numX_ = INVALID_HANDLE;
+	numY_ = INVALID_HANDLE;
+	sizeX_ = INVALID_HANDLE;
+	sizeY_ = INVALID_HANDLE;
 
-	handleId_ = -1;
+	handleId_ = INVALID_HANDLE;
 }
 
 Resource::Resource(TYPE type,
@@ -43,7 +43,7 @@ Resource::Resource(TYPE type,
 	sizeX_ = sizeX;
 	sizeY_ = sizeY;
 
-	handleId_ = -1;
+	handleId_ = INVALID_HANDLE;
 }
 
 Resource::~Resource(void)
