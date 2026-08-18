@@ -10,15 +10,15 @@ ShotBase::ShotBase(void)
 	// èâä˙âª
 	state_ = STATE::NONE;
 
-	timeAlive_ = 0.0f;
-	stepAlive_ = 0.0f;
+	timeAlive_ = NONE;
+	stepAlive_ = NONE;
 
 	collisionRadius_ = DEFAULT_COLLISION_RADIUS;
 
 	scale = DEFAULT_SCALE;
 
-	effectBlastResId_ = -1;
-	effectBlastPlayId_ = -1;
+	effectBlastResId_ = INVALID_MODEL_ID;
+	effectBlastPlayId_ = INVALID_MODEL_ID;
 
 	prevPos_ = AsoUtility::VECTOR_ZERO;
 
@@ -41,8 +41,8 @@ ShotBase::ShotBase(void)
 	transform_.quaRotLocal =
 		Quaternion::Euler(
 			AsoUtility::Deg2RadF(MODEL_ROT_X),
-			0.0f,
-			0.0f);
+			NONE,
+			NONE);
 
 	transform_.Update();
 
@@ -126,7 +126,7 @@ void ShotBase::CheckAlive(void)
 {
 	// ê∂ë∂éûä‘Çå∏ÇÁÇ∑
 	stepAlive_ -= SceneManager::GetInstance().GetDeltaTime();
-	if (stepAlive_ < 0.0f)
+	if (stepAlive_ < NONE)
 	{
 		ChangeState(STATE::END);
 	}
@@ -236,7 +236,7 @@ void ShotBase::PlayBlastEffect(void)
 	effectBlastPlayId_ = PlayEffekseer3DEffect(effectBlastResId_);
 	SetScalePlayingEffekseer3DEffect(
 		effectBlastPlayId_, BLAST_SCALE, BLAST_SCALE, BLAST_SCALE);
-	SetRotationPlayingEffekseer3DEffect(effectBlastPlayId_, 0.0f, 0.0f, 0.0f);
+	SetRotationPlayingEffekseer3DEffect(effectBlastPlayId_, NONE, NONE, NONE);
 	VECTOR pos = transform_.pos;
 	SetPosPlayingEffekseer3DEffect(effectBlastPlayId_, pos.x, pos.y, pos.z);
 

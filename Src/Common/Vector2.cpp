@@ -3,8 +3,8 @@
 // コンストラクタ
 Vector2::Vector2(void)
 {
-	x = 0;
-	y = 0;
+	x = ZERO;
+	y = ZERO;
 }
 
 // コンストラクタ

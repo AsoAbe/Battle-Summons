@@ -6,10 +6,10 @@ CardBase::CardBase(void)
 {
 	rarity_ = CARD_RARITY::NONE;
 
-	dir_ = { 0.0f,0.0f,0.0f };
-	Damage_ = 0;
-	Heal_ = 0;
-	speed_ = 0.0f;
+	dir_ = AsoUtility::VECTOR_ZERO;
+	Damage_ = NONE;
+	Heal_ = NONE;
+	speed_ = NONE;
 	isAlive_ = true;
 }
 

@@ -4,7 +4,19 @@ class Fader
 {
 
 public:
+	// アルファ値の最小値・最大値
+	static constexpr float ALPHA_MIN = 0.0f;
+	static constexpr float ALPHA_MAX = 255.0f;
 
+	// 描画範囲の開始座標
+	static constexpr int DRAW_START_X = 0;
+	static constexpr int DRAW_START_Y = 0;
+
+	// フェード色
+	static constexpr unsigned int FADE_COLOR = 0x000000;
+
+	// ブレンドモード解除時の値
+	static constexpr int NO_BLEND_PARAM = 0;
 	// フェードが進む速さ
 	static constexpr float SPEED_ALPHA = 5.0f;
 

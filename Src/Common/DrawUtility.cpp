@@ -22,14 +22,18 @@ DrawUtility::IntRGB::IntRGB(int r, int g, int b)
 
 void DrawUtility::DrawStringCenter(const std::string& string, int color, int y, int addX)
 {
-	int x = (Application::SCREEN_SIZE_X / 2) - (GetDrawStringWidth(string.c_str(), strlen(string.c_str())) / 2);
+	int x = (Application::SCREEN_SIZE_X / DOUBLE_VALUE)
+		- static_cast<int>(
+			GetDrawStringWidth(string.c_str(), strlen(string.c_str()))
+			/ DOUBLE_VALUE
+			);
 	x += addX;
 	DrawString(x, y, string.c_str(), color);
 }
 
 void DrawUtility::DrawStringCenterScreen(const std::string& string, int color, int y, int screenSize, int addX)
 {
-	int x = (screenSize / 2) - (GetDrawStringWidth(string.c_str(), strlen(string.c_str())) / 2);
+	int x = (screenSize / DOUBLE_VALUE) - static_cast<int>(GetDrawStringWidth(string.c_str(), strlen(string.c_str())) / DOUBLE_VALUE);
 	x += addX;
 	DrawString(x, y, string.c_str(), color);
 }
@@ -37,7 +41,7 @@ void DrawUtility::DrawStringCenterScreen(const std::string& string, int color, i
 void DrawUtility::DrawBar(Vector2 start, int endX, int width, const IntRGB& color, float value, float valueMax)
 {
 	int barX = start.x;
-	if (value > 0)
+	if (value > VALUE_MIN)
 	{
 		//進行度を計算
 		barX = start.x + static_cast<int>((endX - start.x) * (value / valueMax));
@@ -59,15 +63,15 @@ void DrawUtility::DrawBar(Vector2 start, int endX, int width, const IntRGB& colo
 
 void DrawUtility::DrawBarImg(int x, int y, int num, int max, int imgT, int imgF, int imgSize, int shakeLine)
 {
-	constexpr int SHAKE = 4;//揺れる幅
+	constexpr int SHAKE = SHAKE_WIDTH;//揺れる幅
 
-	for (int i = 0; i < max; i++)
+	for (int i = VALUE_MIN; i < max; i++)
 	{
 		//yをずらす
-		int addY = 0;
+		int addY = VALUE_MIN;
 
 		int img;
-		if (i + 1 <= num)
+		if (i + VALUE_MAX <= num)
 		{
 			img = imgT;//表示
 		}
@@ -78,13 +82,13 @@ void DrawUtility::DrawBarImg(int x, int y, int num, int max, int imgT, int imgF,
 		if (num <= shakeLine)
 		{
 			//ライン以下になったので震える
-			addY = GetRand(SHAKE) - (SHAKE / 2);
+			addY = GetRand(SHAKE) - (SHAKE / DOUBLE_VALUE);
 		}
-		if (img != -1)
+		if (img != INVALID_IMAGE_HANDLE)
 		{
-			DrawRotaGraph(i * (imgSize * 2) + x + imgSize / 2
-				, y + imgSize / 2 + addY
-				, 2, 0, img, true);
+			DrawRotaGraph(i * (imgSize * DOUBLE_VALUE) + x + imgSize / DOUBLE_VALUE
+				, y + imgSize / DOUBLE_VALUE + addY
+				, DOUBLE_VALUE, VALUE_MIN, img, true);
 		}
 	}
 }
@@ -112,16 +116,16 @@ bool DrawUtility::IsInBox(Vector2 targetPos, Vector2 boxPos1, Vector2 boxPos2)
 
 bool DrawUtility::Blink(int counter, int cntDiv)
 {
-	return (counter / cntDiv) % 2 == 0;
+	return (counter / cntDiv) % DOUBLE_VALUE == VALUE_MIN;
 }
 
 int DrawUtility::LerpInt(int a, int b, float f)
 {
-	if (f <= 0)
+	if (f <= VALUE_MIN)
 	{
 		return a;
 	}
-	if (f >= 1)
+	if (f >= VALUE_MAX)
 	{
 		return b;
 	}
@@ -145,15 +149,15 @@ void DrawUtility::DrawBarGlossy(Vector2 start, int endX, int width, const IntRGB
 	//枠線
 
 	DrawBox(start.x, start.y,
-		endX + FRAME_WIDTH_BAR * 2, start.y + width + FRAME_WIDTH_BAR * 2,
-		GetColor(206, 168, 78), true);
+		endX + FRAME_WIDTH_BAR * DOUBLE_VALUE, start.y + width + FRAME_WIDTH_BAR * DOUBLE_VALUE,
+		GetColor(FRAME_COLOR_R, FRAME_COLOR_G, FRAME_COLOR_B), true);
 	//枠線のぶんだけ移動
 	endX += FRAME_WIDTH_BAR;
 	start.x += FRAME_WIDTH_BAR;
 	start.y += FRAME_WIDTH_BAR;
 
 	int barX = start.x;
-	if (value > 0)
+	if (value > VALUE_MIN)
 	{
 		//進行度を計算
 		barX = start.x + static_cast<int>((endX - start.x) * (value / valueMax));
@@ -161,10 +165,10 @@ void DrawUtility::DrawBarGlossy(Vector2 start, int endX, int width, const IntRGB
 
 	if (start.x < barX)
 	{
-		int loop = 16;
+		int loop = GLOSSY_LOOP_COUNT;
 		for (int i = 0; i < loop; i++)
 		{
-			float t = 0.4f / loop * (loop - 1 - i);
+			float t = GLOSSY_GRADIENT_RATE / loop * (loop - 1 - i);
 			//グラデーション
 			//DrawBox(start.x, start.y + i
 			//	, barX, start.y + width - i
@@ -172,7 +176,7 @@ void DrawUtility::DrawBarGlossy(Vector2 start, int endX, int width, const IntRGB
 			DrawBox(std::min(barX, static_cast<int>(start.x + (i * static_cast<float>(endX - start.x) / loop)))
 				, start.y
 				, barX, start.y + width
-				, LerpColor(color, { 0,0,0 }, t), true);
+				, LerpColor(color, { COLOR_MIN,COLOR_MIN,COLOR_MIN }, t), true);
 		}
 	}
 	if (barX < endX)

@@ -32,7 +32,7 @@ void Shot::Update()
 void Shot::SetParam()
 {	
 	// --- レア度ごとの補正 ---
-	float rate = 1.0f;
+	float rate = DEFAULT_FLOAT;
 	switch (rarity_)
 	{
 	case CARD_RARITY::BRONZE:
@@ -76,17 +76,14 @@ void Shot::ProcessCard()
 	case CARD_RARITY::BRONZE:
 		player_->CreateBronzeShot();
 		se = SoundManager::SOUND_ID::SHOT_S;
-		//printfDx("Bronze shot fired!\n");
 		break;
 	case CARD_RARITY::SILVER:
 		player_->CreateSilverShot();
 		se = SoundManager::SOUND_ID::SHOT_M;
-		//printfDx("Silver shot fired!\n");
 		break;
 	case CARD_RARITY::GOLD:
 		player_->CreateGoldShot();
 		se = SoundManager::SOUND_ID::SHOT_L;
-		//printfDx("Gold shot fired!\n");
 		break;
 	default:
 		player_->CreateBronzeShot();
@@ -115,7 +112,7 @@ void Shot::CheckDamage()
 	VECTOR eDown = enemy_->GetCapsuleBottom();
 	float  eR = enemy_->GetRadius();
 
-	// ★ カプセル vs 球 の衝突判定
+	// カプセル vs 球 の衝突判定
 	if (AsoUtility::IsHitSphereCapsule(
 		p0, shotR,
 		eTop, eDown, eR
@@ -124,7 +121,7 @@ void Shot::CheckDamage()
 		enemy_->Damage(Damage_);
 		hasDealtDamage_ = true;
 
-		// ★ ヒット効果音
+		// ヒット効果音
 		SoundManager::GetInstance().PlaySE(
 			SoundManager::SOUND_ID::BLAST_S,
 			true,

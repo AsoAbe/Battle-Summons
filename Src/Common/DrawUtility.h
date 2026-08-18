@@ -10,6 +10,32 @@ class DrawUtility
 {
 public:
 
+	// 値の範囲
+	static constexpr float VALUE_MIN = 0.0f;
+	static constexpr float VALUE_MAX = 1.0f;
+
+	// 無効値
+	static constexpr int INVALID_IMAGE_HANDLE = -1;
+
+	// 色
+	static constexpr int COLOR_MIN = 0;
+	static constexpr int COLOR_MAX = 255;
+
+	// 乗算・分割用
+	static constexpr int DOUBLE_VALUE = 2;
+
+	// HPバーの揺れ
+	static constexpr int SHAKE_WIDTH = 4;
+
+	// HPバーのグラデーション
+	static constexpr int GLOSSY_LOOP_COUNT = 16;
+	static constexpr float GLOSSY_GRADIENT_RATE = 0.4f;
+
+	// HPバー枠の色
+	static constexpr int FRAME_COLOR_R = 206;
+	static constexpr int FRAME_COLOR_G = 168;
+	static constexpr int FRAME_COLOR_B = 78;
+
 	struct IntRGB
 	{
 		int r, g, b;

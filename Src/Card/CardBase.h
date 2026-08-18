@@ -8,8 +8,22 @@ class CardBase
 {
 public:
 
-	//未ロード画像ID
-	static constexpr int INVALID_IMAGE_ID = -1;
+	// 基本値
+	static constexpr float NONE = 0.0f;
+	static constexpr float DEFAULT_FLOAT = 1.0f;
+
+	// 無効な小数点値
+	static constexpr float INVALID_FLOAT = -1.0f;
+
+	// 角度変換
+	static constexpr float DEGREE_TO_RADIAN = DX_PI_F / 180.0f;
+
+	//モデルIDの無効値
+	static constexpr int INVALID_MODEL_ID = -1;
+	static constexpr int DEFAULT_MODEL_ID = 0;
+
+	// 最初の衝突ポリゴン
+	static constexpr int FIRST_HIT_INDEX = 0;
 
 	//レア度倍率
 	static constexpr float BRONZE_RATE = 1.0f;
@@ -78,5 +92,5 @@ protected:
 
 	bool isAlive_;
 
-	int iconImg_ = INVALID_IMAGE_ID;
+	int iconImg_ = -1;
 };

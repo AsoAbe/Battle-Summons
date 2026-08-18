@@ -2,7 +2,8 @@
 class Vector2
 {
 public:
-
+	// Šî–{’l
+	static constexpr int ZERO = 0;
 	int x;
 	int y;
 

@@ -6,7 +6,28 @@ class Quaternion
 {
 
 public:
-	
+	// äÓñ{íl
+	static constexpr double ZERO = 0.0;
+	static constexpr double ONE = 1.0;
+	static constexpr double HALF = 0.5;
+	static constexpr double QUARTER = 0.25;
+	static constexpr double TWO = 2.0;
+
+	// âÒì]
+	static constexpr double HALF_ROTATION = 0.5;
+	static constexpr double FULL_ROTATION = 2.0;
+
+	// äpìxïœä∑
+	static constexpr float DEGREE_TO_RADIAN = DX_PI_F / 180.0f;
+
+	// ê≥ãKâªÅEï‚ä‘
+	static constexpr float NORMALIZE_THRESHOLD = 0.0001f;
+	static constexpr float SLERP_LINEAR_THRESHOLD = 0.99f;
+
+	// âÒì]äpìx
+	static constexpr double ANGLE_STRAIGHT = 179.9196;
+	static constexpr float AXIS_LENGTH_THRESHOLD = 0.000001f;
+
 	static constexpr float kEpsilonNormalSqrt = 1e-15F;
 
 	double w;

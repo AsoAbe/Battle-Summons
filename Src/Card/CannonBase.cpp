@@ -10,43 +10,40 @@
 #include "../Object/EnemyGolem.h"
 #include "CannonBase.h"
 
-//爆発の判定を相手の半径を考慮、試していない
 
 CannonBase::CannonBase(int baseModelId, int blastEffect)
 	: blastDuration_(BLAST_DURATION)
 {
 	baseModelId_ = baseModelId;
 
-	modelId_ = -1;
+	modelId_ = INVALID_MODEL_ID;
 
-	dir_ = { 0.0f,0.0f,0.0f };
-	scl_ = { 1.0f,1.0f,1.0f };
-	rot_ = { 0.0f,0.0f,0.0f };
-	pos_ = { 0.0f,0.0f,0.0f };
-
-	speed_ = 0.0f;
-	radius_ = 0.0f;
-	size_ = 1.0f;
-	gravityPow_ = 0.0f;
+	dir_ = AsoUtility::VECTOR_ZERO;
+	scl_ = { DEFAULT_FLOAT,DEFAULT_FLOAT,DEFAULT_FLOAT };
+	rot_ = AsoUtility::VECTOR_ZERO;
+	pos_ = AsoUtility::VECTOR_ZERO;
+	speed_ = NONE;
+	radius_ = NONE;
+	size_ = DEFAULT_FLOAT;
+	gravityPow_ = NONE;
 
 	blastEffectHandle_ = blastEffect;
-	blastEffectPlayId_ = -1;
+	blastEffectPlayId_ = INVALID_MODEL_ID;
 
-	blastTimer_ = 0.0f;
+	blastTimer_ = NONE;
 	blastRadius_ = DEFAULT_BLAST_RADIUS;
 
 	Damage_ = DEFAULT_DAMAGE;
 
 	hasDealtDamage_ = false;
 
-	DamageRate = 1.0f;
+	DamageRate = DEFAULT_FLOAT;
 
 	state_ = STATE::NONE;
 
 	Fired_ = false;
 
-	prevPos_ = { 0.0f,0.0f,0.0f };
-
+	prevPos_ = { NONE,NONE,NONE };
 	bulletRadius_ = DEFAULT_BULLET_RADIUS;
 
 	transform_ = Transform{};
@@ -54,16 +51,16 @@ CannonBase::CannonBase(int baseModelId, int blastEffect)
 
 CannonBase::~CannonBase(void)
 {
-	if (blastEffectPlayId_ >= 0)
+	if (blastEffectPlayId_ >= NONE)
 	{
 		StopEffekseer3DEffect(blastEffectPlayId_);
-		blastEffectPlayId_ = -1;
+		blastEffectPlayId_ = INVALID_MODEL_ID;
 	}
 
-	if (modelId_ >= 0)
+	if (modelId_ >= NONE)
 	{
 		MV1DeleteModel(modelId_);
-		modelId_ = -1;
+		modelId_ = INVALID_MODEL_ID;
 	}
 }
 
@@ -86,7 +83,7 @@ void CannonBase::CreateShot(VECTOR pos, VECTOR dir)
 	scl_ = { MODEL_SCALE * DamageRate, MODEL_SCALE * DamageRate, MODEL_SCALE * DamageRate };
 
 	// 弾の角度を設定
-	rot_ = { 0.0f, 0.0f, 0.0f };
+	rot_ = AsoUtility::VECTOR_ZERO;
 
 	// 弾の発射位置を設定
 	pos_ = pos;
@@ -101,25 +98,20 @@ void CannonBase::CreateShot(VECTOR pos, VECTOR dir)
 	isAlive_ = true;
 
 	// 重力
-	gravityPow_ = 0.0f;
+	gravityPow_ = NONE;
 
 	//当たり判定半径
 	bulletRadius_ = DEFAULT_BULLET_RADIUS;
 
 	// カプセルコライダー生成
 	capsule_ = std::make_unique<Capsule>(Transform()); // 仮のTransform
-	capsule_->SetLocalPosTop(VAdd(pos_, { 0.0f, CAPSULE_HALF_HEIGHT, 0.0f }));
-	capsule_->SetLocalPosDown(VAdd(pos_, { 0.0f, -CAPSULE_HALF_HEIGHT, 0.0f }));
+	capsule_->SetLocalPosTop(VAdd(pos_, { NONE, CAPSULE_HALF_HEIGHT, NONE }));
+	capsule_->SetLocalPosDown(VAdd(pos_, { NONE, -CAPSULE_HALF_HEIGHT, NONE }));
 	capsule_->SetRadius(radius_);
 
 	// カプセルの位置を弾の座標に反映
 	UpdateCapsulePos();
 
-	//// 爆発のアニメーション用カウンタ
-	//blastCntAnim_ = 0;
-
-	//// 爆発のアニメーション速度
-	//blastSpeedAnim_ = 0.3f;
 	auto player = player_.lock();
 	if (player)
 	{
@@ -181,7 +173,7 @@ void CannonBase::UpdateShot(void)
 	gravityPow_ += GRAVITY / DEFAULT_FPS;
 
 	//pos_.y -= gravityPow_;
-	pos_ = VAdd(pos_, VScale({ 0.0f, -1.0f, 0.0f }, gravityPow_));
+	pos_ = VAdd(pos_, VScale({ NONE, INVALID_FLOAT, NONE }, gravityPow_));
 
 	// 大きさの設定
 	MV1SetScale(modelId_, scl_);
@@ -217,11 +209,11 @@ void CannonBase::UpdateBlast(void)
 
 	// Effekseerの再生が終わった、または一定時間経過したら終了
 // 再生終了 or 時間経過で爆風終了
-	if ((blastEffectPlayId_ >= 0 && IsEffekseer3DEffectPlaying(blastEffectPlayId_) == -1) ||
+	if ((blastEffectPlayId_ >= NONE && IsEffekseer3DEffectPlaying(blastEffectPlayId_) == INVALID_MODEL_ID) ||
 		blastTimer_ > blastDuration_)
 	{
 		StopEffekseer3DEffect(blastEffectPlayId_);
-		blastEffectPlayId_ = -1;
+		blastEffectPlayId_ = INVALID_MODEL_ID;
 		ChangeState(STATE::END);
 	}
 }
@@ -236,17 +228,17 @@ void CannonBase::UpdateCapsulePos()
 	if (!capsule_) return;
 
 	// ローカル座標 + 弾の座標
-	capsule_->SetLocalPosTop(VAdd({ 0.0f, CAPSULE_HALF_HEIGHT, 0.0f }, pos_));
-	capsule_->SetLocalPosDown(VAdd({ 0.0f, -CAPSULE_HALF_HEIGHT, 0.0f }, pos_));
+	capsule_->SetLocalPosTop(VAdd({ NONE, CAPSULE_HALF_HEIGHT, NONE }, pos_));
+	capsule_->SetLocalPosDown(VAdd({ NONE, -CAPSULE_HALF_HEIGHT, NONE }, pos_));
 }
 
 void CannonBase::CheckBlastDamage()
 {
 	switch (rarity_)
 	{
-	case CARD_RARITY::BRONZE: DamageRate = 1.0f; break;
-	case CARD_RARITY::SILVER: DamageRate = 1.5f; break;
-	case CARD_RARITY::GOLD:   DamageRate = 2.0f; break;
+	case CARD_RARITY::BRONZE: DamageRate = BRONZE_RATE; break;
+	case CARD_RARITY::SILVER: DamageRate = SILVER_RATE; break;
+	case CARD_RARITY::GOLD:   DamageRate = GOLD_RATE; break;
 	}	
 	// Player ダメージ
 	if (!player_.expired())
@@ -323,10 +315,10 @@ bool CannonBase::Release(void)
 	if (blastEffectPlayId_ >= 0)
 	{
 		StopEffekseer3DEffect(blastEffectPlayId_);
-		blastEffectPlayId_ = -1;
+		blastEffectPlayId_ = INVALID_MODEL_ID;
 	}
 	MV1DeleteModel(modelId_);
-	modelId_ = -1;
+	modelId_ = INVALID_MODEL_ID;
 
 	return true;
 }
@@ -396,16 +388,16 @@ void CannonBase::Colliders(void)
 		// カプセルとステージの衝突判定
 		auto hits = MV1CollCheck_Capsule(
 			collider->modelId_,
-			-1,
+			INVALID_MODEL_ID,
 			capsule_->GetLocalPosTop(),
 			capsule_->GetLocalPosDown(),
 			capsule_->GetRadius()
 		);
 
 		// 衝突時
-		if (hits.HitNum > 0)
+		if (hits.HitNum > NONE)
 		{
-			auto hit = hits.Dim[0];
+			auto hit = hits.Dim[FIRST_HIT_INDEX];
 			pos_ = VAdd(pos_, VScale(hit.Normal, HIT_PUSH_BACK));  // 埋まらないよう少しずらす
 			Blast();
 			MV1CollResultPolyDimTerminate(hits);
@@ -473,14 +465,14 @@ void CannonBase::PlayBlastEffect()
 		blastEffectPlayId_, ShotSize, ShotSize, ShotSize);
 
 	//回転
-	SetRotationPlayingEffekseer3DEffect(blastEffectPlayId_, 0.0f, 0.0f, 0.0f);
+	SetRotationPlayingEffekseer3DEffect(blastEffectPlayId_, NONE, NONE, NONE);
 
 	//位置
 	//VECTOR pos = transform_.pos;
 	SetPosPlayingEffekseer3DEffect(blastEffectPlayId_, pos_.x, pos_.y + BLAST_OFFSET_Y, pos_.z);
 
 	// タイマー初期化
-	blastTimer_ = 0.0f;
+	blastTimer_ = NONE;
 	// ダメージ判定リセット
 	hasDealtDamage_ = false;
 }
@@ -509,10 +501,10 @@ void CannonBase::CheckHitSphere()
 
 void CannonBase::StopEffect()
 {
-	if (blastEffectPlayId_ >= 0)
+	if (blastEffectPlayId_ >= DEFAULT_MODEL_ID)
 	{
 		StopEffekseer3DEffect(blastEffectPlayId_);
-		blastEffectPlayId_ = -1;
+		blastEffectPlayId_ = INVALID_MODEL_ID;
 	}
 
 	isAlive_ = false;

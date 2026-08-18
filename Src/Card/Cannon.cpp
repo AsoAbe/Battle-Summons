@@ -12,26 +12,26 @@
 Cannon::Cannon(std::shared_ptr<Player> player, std::weak_ptr<EnemyGolem> enemy)
 	: CannonBase(0, 0),player_(player),enemy_(enemy)
 {
-	size_ = 0.8f;
+	size_ = DEFAULT_SIZE;
 
-	standModelId_ = -1;
-	standScl_ = { 0.0f,0.0f,0.0f };
-	standRot_ = { 0.0f,0.0f,0.0f };
-	standPos_ = { 0.0f,0.0f,0.0f };
+	standModelId_ = INVALID_MODEL_ID;
+	standScl_ = AsoUtility::VECTOR_ZERO;
+	standRot_ = AsoUtility::VECTOR_ZERO;
+	standPos_ = AsoUtility::VECTOR_ZERO;
 
-	barrelModelId_ = -1;
-	barrelScl_ = { 0.0f,0.0f,0.0f };
-	barrelRot_ = { 0.0f,0.0f,0.0f };
-	barrelPos_ = { 0.0f,0.0f,0.0f };
-	barrelLocalPos_ = { 0.0f,0.0f,0.0f };
+	barrelModelId_ = INVALID_MODEL_ID;
+	barrelScl_ = AsoUtility::VECTOR_ZERO;
+	barrelRot_ = AsoUtility::VECTOR_ZERO;
+	barrelPos_ = AsoUtility::VECTOR_ZERO;
+	barrelLocalPos_ = AsoUtility::VECTOR_ZERO;
 
-	shotModelId_ = -1;
+	shotModelId_ = INVALID_MODEL_ID;
 
-	stepShotDelay_ = 0.0f;
+	stepShotDelay_ = NONE;
 
-	blastEffect_ = -1;
+	blastEffect_ = INVALID_MODEL_ID;
 
-	stepAlive_ = 0.0f;
+	stepAlive_ = NONE;
 }
 
 Cannon::~Cannon(void)
@@ -74,7 +74,7 @@ bool Cannon::Init(void)
 			VScale(forward, offsetDist)
 		);
 	}
-	standRot_ = { 0.0f,0.0f,0.0f };
+	standRot_ = AsoUtility::VECTOR_ZERO;
 
 
 #pragma endregion
@@ -85,10 +85,10 @@ bool Cannon::Init(void)
 	//ñCêgÇÃëÂÇ´Ç≥
 	barrelScl_ = { size_,size_,size_ };
 	//ñCêgÇÃäpìx
-	barrelRot_ = { -0.5f,0.0f,0.0f };
+	barrelRot_ = { BARREL_ROT_X, BARREL_ROT_Y, BARREL_ROT_Z };
 	barrelRot_.y = player_->GetRot().y;
 	//ñCêgÇÃç¿ïW
-	barrelLocalPos_ = { 0.0f,BARREL_HEIGHT *DamageRate,0.0f };
+	barrelLocalPos_ = { NONE,BARREL_HEIGHT *DamageRate,NONE };
 
 	// VECTORìØémÇÃâ¡éZ VAddä÷êî
 	barrelPos_ = VAdd(standPos_, barrelLocalPos_);
@@ -100,7 +100,7 @@ bool Cannon::Init(void)
 		rem.LoadModelDuplicate(ResourceManager::SRC::CANNON_SHOT);
 
 	// íeî≠éÀÇÃçdíºéûä‘
-	stepShotDelay_ = 0.0f;
+	stepShotDelay_ = NONE;
 
 	// îöî≠ÉGÉtÉFÉNÉgì«Ç›çûÇ›
 	blastEffect_ = ResourceManager::GetInstance().Load(
@@ -174,7 +174,7 @@ void Cannon::ProcessRot(void)
 	auto& ins = InputManager::GetInstance();
 
 	//âÒì]ó 
-	float rotPowRad = 2.0f * DX_PI_F / 180.0f;
+	float rotPowRad = ROTATE_SPEED_DEGREE * DEGREE_TO_RADIAN;
 
 }
 
@@ -186,7 +186,7 @@ void Cannon::ProcessShot(void)
 	if (Fired_)
 		return;
 
-	if (ins.IsNew(KEY_INPUT_E) && stepShotDelay_ <= 0.0f)
+	if (ins.IsNew(KEY_INPUT_E) && stepShotDelay_ <= NONE)
 	{
 		CannonBase* shot = GetValidShot();
 
@@ -195,8 +195,8 @@ void Cannon::ProcessShot(void)
 		matRot = MMult(matRot, MGetRotY(barrelRot_.y));
 		matRot = MMult(matRot, MGetRotZ(barrelRot_.z));
 
-		VECTOR dir = VNorm(VTransform({ 0.0f, 0.0f, 1.0f }, matRot));
-		VECTOR localPosRot = VTransform({ 0.0f, SHOT_OFFSET_Y * DamageRate, SHOT_OFFSET_Z }, matRot);
+		VECTOR dir = VNorm(VTransform({ NONE, NONE, DEFAULT_FLOAT }, matRot));
+		VECTOR localPosRot = VTransform({ NONE, SHOT_OFFSET_Y * DamageRate, SHOT_OFFSET_Z }, matRot);
 		VECTOR pos = VAdd(barrelPos_, localPosRot);
 
 		shot->CreateShot(pos, dir);
@@ -229,9 +229,9 @@ void Cannon::ProcessShot(void)
 		Fired_ = true;
 	}
 
-	if (stepShotDelay_ > 0.0f)
+	if (stepShotDelay_ > NONE)
 	{
-		stepShotDelay_ -= 1.0f / DEFAULT_FPS;
+		stepShotDelay_ -= FRAME_TIME;
 	}
 	else
 	{
@@ -241,7 +241,7 @@ void Cannon::ProcessShot(void)
 
 void Cannon::UpdateLifeTime()
 {
-	stepAlive_ += 1.0f / DEFAULT_FPS;
+	stepAlive_ += FRAME_TIME;
 
 	if (stepAlive_ >= timeAlive_)
 	{
