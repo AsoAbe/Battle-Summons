@@ -32,7 +32,6 @@ void ModelRenderer::Draw(void)
 	MV1DrawModel(modelId_);
 
 	// テクスチャアドレスタイプを元に戻す
-	//SetTextureAddressModeUV(DX_TEXADDRESS_CLAMP, DX_TEXADDRESS_CLAMP);
 	SetTextureAddressModeUV(DX_TEXADDRESS_WRAP, DX_TEXADDRESS_WRAP);
 
 	// 後始末
@@ -41,24 +40,24 @@ void ModelRenderer::Draw(void)
 	// テクスチャ解除
 	const auto& textures = modelMaterial_.GetTextures();
 	size_t size = textures.size();
-	if (size == 0)
+	if (size == TEXTURE_SLOT_BEGIN)
 	{
 		// 前回使用分のテクスチャを引き継がないように
-		SetUseTextureToShader(0, -1);
+		SetUseTextureToShader(TEXTURE_SLOT_BEGIN, TEXTURE_RELEASE);
 	}
 	else
 	{
 		for (const auto& pair : textures)
 		{
-			SetUseTextureToShader(pair.first, -1);
+			SetUseTextureToShader(pair.first, TEXTURE_RELEASE);
 		}
 	}
 
 	// 頂点シェーダ解除
-	SetUseVertexShader(-1);
+	SetUseVertexShader(TEXTURE_RELEASE);
 
 	// ピクセルシェーダ解除
-	SetUsePixelShader(-1);
+	SetUsePixelShader(TEXTURE_RELEASE);
 
 	// オリジナルシェーダ設定(OFF)
 	MV1SetUseOrigShader(false);
@@ -76,9 +75,9 @@ void ModelRenderer::SetReserveVS(void)
 	const auto& constBufs = modelMaterial_.GetConstBufsVS();
 
 	size_t size = constBufs.size();
-	for (int i = 0; i < size; i++)
+	for (int i = TEXTURE_SLOT_BEGIN; i < size; i++)
 	{
-		if (i != 0)
+		if (i != TEXTURE_SLOT_BEGIN)
 		{
 			constBufsPtr++;
 		}
@@ -106,10 +105,10 @@ void ModelRenderer::SetReservePS(void)
 	// ピクセルシェーダーにテクスチャを転送
 	const auto& textures = modelMaterial_.GetTextures();
 	size_t size = textures.size();
-	if (size == 0)
+	if (size == TEXTURE_SLOT_BEGIN)
 	{
 		// 前回使用分のテクスチャを引き継がないように
-		SetUseTextureToShader(0, -1);
+		SetUseTextureToShader(TEXTURE_SLOT_BEGIN, TEXTURE_RELEASE);
 	}
 	else
 	{
@@ -126,9 +125,9 @@ void ModelRenderer::SetReservePS(void)
 	const auto& constBufs = modelMaterial_.GetConstBufsPS();
 
 	size = constBufs.size();
-	for (int i = 0; i < size; i++)
+	for (int i = TEXTURE_SLOT_BEGIN; i < size; i++)
 	{
-		if (i != 0)
+		if (i != TEXTURE_SLOT_BEGIN)
 		{
 			constBufsPtr++;
 		}

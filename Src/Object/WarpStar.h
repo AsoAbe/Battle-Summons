@@ -12,6 +12,9 @@ class WarpStar : public ActorBase
 {
 
 public:
+	// シェーダー定数バッファのスロット番号
+	static constexpr int VERTEX_SHADER_SLOT = 0;
+	static constexpr int PIXEL_SHADER_SLOT = 1;
 
 	// 準備時間
 	static constexpr float TIME_WARP_RESERVE = 2.0f;

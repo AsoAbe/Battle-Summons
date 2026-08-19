@@ -26,7 +26,7 @@ Player::Player(void)
 	card_ = nullptr;
 	state_ = STATE::NONE;
 
-	speed_ = 0.0f;
+	speed_ = INITIAL_FLOAT;
 	moveDir_ = AsoUtility::VECTOR_ZERO;
 	movePow_ = AsoUtility::VECTOR_ZERO;
 	movedPos_ = AsoUtility::VECTOR_ZERO;
@@ -34,37 +34,37 @@ Player::Player(void)
 
 	playerRotY_ = Quaternion();
 	goalQuaRot_ = Quaternion();
-	stepRotTime_ = 0.0f;
+	stepRotTime_ = INITIAL_FLOAT;
 
 	jumpPow_ = AsoUtility::VECTOR_ZERO;
 	isJump_ = false;
-	stepJump_ = 0.0f;
-	MaxHp_ = 0;
-	Hp_ = 0;
-	invincibleTimer_ = 0;
+	stepJump_ = INITIAL_FLOAT;
+	MaxHp_ = INITIAL_INT;
+	Hp_ = INITIAL_INT;
+	invincibleTimer_ = INITIAL_INT;
 	alive_ = true;
 	
-	regenTimer_ = 0.0f;
-	regenInterval_ = 0.0f;   //1秒ごと
-	regenAmount_ = 0;        //1回の回復量
+	regenTimer_ = INITIAL_FLOAT;
+	regenInterval_ = INITIAL_FLOAT;   //1秒ごと
+	regenAmount_ = INITIAL_INT;        //1回の回復量
 
-	capsuleOffsetY = 0.0f;
-	footOffsetY = 0.0f;
+	capsuleOffsetY = INITIAL_FLOAT;
+	footOffsetY = INITIAL_FLOAT;
 
-	imgShadow_ = -1;
+	imgShadow_ = INVALID_HANDLE;
 
 	//エフェクト関連
-	HealEffectHandle_ = -1;
-	HealEffectPlayId_ = -1;
+	HealEffectHandle_ = INVALID_HANDLE;
+	HealEffectPlayId_ = INVALID_HANDLE;
 	isHealEffectPlaying_ = false;
 
 	capsule_ = nullptr;
 
 	isAttacking_ = false;
-	attackTimer_ = 0.0f;
+	attackTimer_ = INITIAL_FLOAT;
 
-	deleyShot_ = 0.0f;
-	TIME_DELAY_SHOT = 0.0f;
+	deleyShot_ = INITIAL_FLOAT;
+	TIME_DELAY_SHOT = INITIAL_FLOAT;
 
 	damaged_ = false;
 	preDamaged_ = false;
@@ -87,10 +87,10 @@ void Player::Init(void)
 	transform_.SetModel(resMng_.LoadModelDuplicate(
 		ResourceManager::SRC::PLAYER));
 	transform_.scl = AsoUtility::VECTOR_ONE;
-	transform_.pos = { 0.0f, -START_POS_Y, 0.0f };
+	transform_.pos = { INITIAL_FLOAT, -START_POS_Y, INITIAL_FLOAT };
 	transform_.quaRot = Quaternion();
 	transform_.quaRotLocal =
-		Quaternion::Euler({ 0.0f, AsoUtility::Deg2RadF(MODEL_ROT_Y), 0.0f });
+		Quaternion::Euler({ INITIAL_FLOAT, AsoUtility::Deg2RadF(MODEL_ROT_Y), INITIAL_FLOAT });
 	transform_.Update();
 
 	//アニメーションの設定
@@ -101,10 +101,10 @@ void Player::Init(void)
 	capsuleOffsetY = CAPSULE_OFFSET_Y;
 	
 	//魔法使い
-	capsule_->SetLocalPosTop({ 0.0f, CAPSULE_TOP_Y, 0.0f });
-	capsule_->SetLocalPosDown({ 0.0f, CAPSULE_BOTTOM_Y, 0.0f });
+	capsule_->SetLocalPosTop({ INITIAL_FLOAT, CAPSULE_TOP_Y, INITIAL_FLOAT });
+	capsule_->SetLocalPosDown({ INITIAL_FLOAT, CAPSULE_BOTTOM_Y, INITIAL_FLOAT });
 	capsule_->SetRadius(CAPSULE_RADIUS);
-	transform_.modelOffset = { 0.0f, MODEL_OFFSET_Y, 0.0f };
+	transform_.modelOffset = { INITIAL_FLOAT, MODEL_OFFSET_Y, INITIAL_FLOAT };
 
 	//丸影画像
 	imgShadow_ = resMng_.Load(ResourceManager::SRC::PLAYER_SHADOW).handleId_;
@@ -143,7 +143,7 @@ void Player::Update(void)
 		if (IsEffekseer3DEffectPlaying(HealEffectPlayId_) != 0)
 		{
 			isHealEffectPlaying_ = false;
-			HealEffectPlayId_ = -1;
+			HealEffectPlayId_ = INVALID_HANDLE;
 		}
 	}
 
@@ -366,17 +366,17 @@ void Player::StopHealEffect(void)
 	if (!isHealEffectPlaying_) return;
 
 	StopEffekseer3DEffect(HealEffectPlayId_);
-	HealEffectPlayId_ = -1;
+	HealEffectPlayId_ = INVALID_HANDLE;
 	isHealEffectPlaying_ = false;
 }
 
 void Player::UpdateInvincible(float deltaTime)
 {
-	if (invincibleTimer_ > 0.0f)
+	if (invincibleTimer_ > INITIAL_FLOAT)
 	{
 		invincibleTimer_ -= deltaTime;
-		if (invincibleTimer_ < 0.0f)
-			invincibleTimer_ = 0.0f;
+		if (invincibleTimer_ < INITIAL_FLOAT)
+			invincibleTimer_ = INITIAL_FLOAT;
 	}
 }
 
@@ -411,13 +411,13 @@ void Player::DrawShadow(void)
 		// プレイヤーの直下に存在する地面のポリゴンを取得
 		HitResDim = MV1CollCheck_Capsule(
 			ModelHandle, -1,
-			transform_.pos, VAdd(transform_.pos, { 0.0f, -SHADOW_HEIGHT, 0.0f }), SHADOW_SIZE);
+			transform_.pos, VAdd(transform_.pos, { INITIAL_FLOAT, -SHADOW_HEIGHT, INITIAL_FLOAT }), SHADOW_SIZE);
 
 		// 頂点データで変化が無い部分をセット
 		Vertex[0].dif = GetColorU8(COLOR_MAX, COLOR_MAX, COLOR_MAX, COLOR_MAX);
 		Vertex[0].spc = GetColorU8(COLOR_MIN, COLOR_MIN, COLOR_MIN, COLOR_MIN);
-		Vertex[0].su = 0.0f;
-		Vertex[0].sv = 0.0f;
+		Vertex[0].su = INITIAL_FLOAT;
+		Vertex[0].sv = INITIAL_FLOAT;
 		Vertex[1] = Vertex[0];
 		Vertex[2] = Vertex[0];
 
@@ -474,7 +474,7 @@ int Player::GetShadowAlpha(float posY) const
 	}
 
 	float heightRate =
-		1.0f - fabs(posY - transform_.pos.y) / SHADOW_HEIGHT;
+		SHADOW_ALPHA_RATE_BASE - fabs(posY - transform_.pos.y) / SHADOW_HEIGHT;
 
 	return static_cast<int>(
 		roundf(SHADOW_ALPHA_MAX * heightRate)
@@ -497,7 +497,7 @@ void Player::ProcessMove(void)
 	Quaternion cameraRot = mainCamera.GetQuaRotOutX();
 
 	// 回転したい角度
-	double rotRad = 0;
+	double rotRad = MOVE_ROT_FRONT;
 
 	VECTOR dir = AsoUtility::VECTOR_ZERO;
 
@@ -507,23 +507,19 @@ void Player::ProcessMove(void)
 		// WASDで移動する
 		if (ins.IsNew(KEY_MOVE_FRONT)) {
 			rotRad = AsoUtility::Deg2RadD(MOVE_ROT_FRONT);//前
-			//dir = cameraRot.GetForward();
 			dir = VAdd(dir, cameraRot.GetForward());
 		}
 		if (ins.IsNew(KEY_MOVE_LEFT)) {
 			rotRad = AsoUtility::Deg2RadD(MOVE_ROT_LEFT);//左
-			//dir = cameraRot.GetLeft();
 			dir = VAdd(dir, cameraRot.GetLeft());
 
 		}
 		if (ins.IsNew(KEY_MOVE_BACK)) {
 			rotRad = AsoUtility::Deg2RadD(MOVE_ROT_BACK);//後
-			//dir = cameraRot.GetBack();
 			dir = VAdd(dir, cameraRot.GetBack());
 		}
 		if (ins.IsNew(KEY_MOVE_RIGHT)) {
 			rotRad = AsoUtility::Deg2RadD(MOVE_ROT_RIGHT);//右
-			//dir = cameraRot.GetRight();
 			dir = VAdd(dir, cameraRot.GetRight());
 		}
 	}
@@ -562,22 +558,23 @@ void Player::ProcessMove(void)
 		}
 	}
 
-	if (ins.IsNew(KEY_HEAL))
-	{	
-		Hp_ += 1;
-		if (Hp_ >= MaxHp_)
-		{
-			Hp_ = MaxHp_;
-		}
-	
-	}
-	if (ins.IsNew(KEY_DAMAGE))
-	{
-		if(Hp_ > 0)
-		{
-			Hp_ -= 1;
-		}
-	}
+	//デバッグ用-------------------------
+	//if (ins.IsNew(KEY_HEAL))
+	//{	
+	//	Hp_ += 1;
+	//	if (Hp_ >= MaxHp_)
+	//	{
+	//		Hp_ = MaxHp_;
+	//	}
+	//
+	//}
+	//if (ins.IsNew(KEY_DAMAGE))
+	//{
+	//	if(Hp_ > 0)
+	//	{
+	//		Hp_ -= 1;
+	//	}
+	//}
 }
 
 void Player::ProcessJump(void)
@@ -586,11 +583,6 @@ void Player::ProcessJump(void)
 
 	bool isHit = CheckHitKey(KEY_JUMP);
 
-	SoundManager::GetInstance().PlaySE(
-		SoundManager::SOUND_ID::JUMP,
-		true,
-		SoundManager::VOLUME_STANDARD
-	);
 
 	// ジャンプ
 	if (isHit && (isJump_ || IsEndLanding()))
@@ -598,6 +590,12 @@ void Player::ProcessJump(void)
 
 		if (!isJump_)
 		{
+
+			SoundManager::GetInstance().PlaySE(
+				SoundManager::SOUND_ID::JUMP,
+				true,
+				SoundManager::VOLUME_STANDARD
+			);
 
 			// 無理やりアニメーション
 			animationController_->Play((int)ANIM_TYPE::JUMP,
@@ -643,7 +641,7 @@ void Player::SetGoalRotate(double rotRad)
 	double angleDiff = Quaternion::Angle(axis, goalQuaRot_);
 
 	// しきい値
-	if (angleDiff > 0.1)
+	if (angleDiff > ROTATE_LERP_SPEED)
 	{
 		stepRotTime_ = TIME_ROT;
 	}
@@ -671,8 +669,8 @@ void Player::OnLanding(const MV1_COLL_RESULT_POLY& hit)
 
 	// ジャンプリセット
 	jumpPow_ = AsoUtility::VECTOR_ZERO;
-	//stepJump_ = 0.0f;  Playerで管理
-	stepJump_ = 0.0f;
+	//stepJump_ = INITIAL_FLOAT;  Playerで管理
+	stepJump_ = INITIAL_FLOAT;
 	if (isJump_)
 	{
 		animationController_->Play(
@@ -717,7 +715,7 @@ void Player::Heal(int Value)
 bool Player::Damage(int damage)
 {
 	// 無敵中はダメージ無効
-	if (invincibleTimer_ > 0.0f || isDead_) return false;
+	if (invincibleTimer_ > INITIAL_FLOAT || isDead_) return false;
 
 	SoundManager::GetInstance().PlaySE(
 		SoundManager::SOUND_ID::HIT,
@@ -735,7 +733,7 @@ bool Player::Damage(int damage)
 
 		ChangeState(STATE::DEAD);
 		// ディレイ開始
-		deadTimer_ = 0.0f;
+		deadTimer_ = INITIAL_FLOAT;
 		gameOverReserved_ = true;
 
 		return true;
@@ -763,9 +761,9 @@ void Player::ProcessShot(bool byCard)
 {
 
 	deleyShot_ -= SceneManager::GetInstance().GetDeltaTime();
-	if (deleyShot_ < 0.0f)
+	if (deleyShot_ < INITIAL_FLOAT)
 	{
-		deleyShot_ = 0.0f;
+		deleyShot_ = INITIAL_FLOAT;
 	}
 
 	auto& ins = InputManager::GetInstance();
@@ -839,7 +837,7 @@ void Player::CreateSilverShot(void)
 		bool isCreate = false;
 
 		// 発射角を計算
-		float offsetIndex = static_cast<float>(i) - (num - 1) / SHOT_CENTER_OFFSET; // -1, 0, +1
+		float offsetIndex = static_cast<float>(i) - (num - SHOT_CENTER_ADJUST) / SHOT_CENTER_OFFSET; // -1, 0, +1
 		float angle = baseAngle + offsetIndex * angleOffset;
 
 		// 向きベクトル算出
@@ -894,13 +892,13 @@ void Player::CreateGoldShot(void)
 
 	for (int v = 0; v < numV; ++v)
 	{
-		float offsetPitch = (v - (numV - 1) / SHOT_CENTER_OFFSET) * angleOffsetV; // 上下の角度変化
+		float offsetPitch = (v - (numV - SHOT_CENTER_ADJUST) / SHOT_CENTER_OFFSET) * angleOffsetV; // 上下の角度変化
 
 		for (int h = 0; h < numH; ++h)
 		{
 			// 弾の生成フラグ
 			bool isCreate = false;
-			float offsetYaw = (h - (numH - 1) / SHOT_CENTER_OFFSET) * angleOffsetH; // 左右の角度変化
+			float offsetYaw = (h - (numH - SHOT_CENTER_ADJUST) / SHOT_CENTER_OFFSET) * angleOffsetH; // 左右の角度変化
 
 			// 弾の角度計算（yaw：左右、pitch：上下）
 			float yaw = baseYaw + offsetYaw;
@@ -962,7 +960,7 @@ void Player::StartAttack()
 	transform_.modelOffset.y = ATTACK_MODEL_OFFSET_Y;
 
 	isAttacking_ = true;
-	attackTimer_ = 0.0f;
+	attackTimer_ = INITIAL_FLOAT;
 
 	// 攻撃アニメ再生（ブレンド無し、ループなし）
 	PlayAnimation(ANIM_TYPE::ATTACK, false, ANIM_START_FRAME, ANIM_SPEED_ACTION);

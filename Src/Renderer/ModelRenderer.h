@@ -7,6 +7,14 @@ class ModelRenderer
 {
 
 public:
+	// テクスチャスロット番号
+	static constexpr int TEXTURE_SLOT_BEGIN = 0;
+
+	// テクスチャ解除
+	static constexpr int TEXTURE_RELEASE = -1;
+	
+	// 定数バッファの先頭要素
+	static constexpr int FIRST_CONST_BUF_INDEX = 0;
 
 	// 頂点シェーダ用オリジナル定数バッファの使用開始スロット
 	static constexpr int CONSTANT_BUF_SLOT_BEGIN_VS = 7;

@@ -14,6 +14,8 @@ class Stage
 {
 
 public:
+	// 初期値
+	static constexpr float INITIAL_VALUE = 0.0f;
 
 	// ステージの切り替え間隔
 	static constexpr float TIME_STAGE_CHANGE = 1.0f;

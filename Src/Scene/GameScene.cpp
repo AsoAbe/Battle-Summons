@@ -14,8 +14,6 @@
 #include "../Object/enemyGolem.h"
 #include "../Object/Planet.h"
 #include "../UI/GamePanel.h"
-//#include "../Object/Metal.h"
-//#include "../Object/Water.h"
 #include "../Renderer/PixelMaterial.h"
 #include "GameScene.h"
 

@@ -23,10 +23,10 @@ Stage::Stage(std::shared_ptr<Player> player,
 	, planets_()
 	, warpStars_()
 	, nullPlanet(nullptr)
-	, step_(0.0f)
+	, step_(INITIAL_VALUE)
 {
 	activeName_ = NAME::MAIN_PLANET;
-	step_ = 0.0f;
+	step_ = INITIAL_VALUE;
 }
 
 Stage::~Stage(void)
@@ -128,7 +128,7 @@ void Stage::MakeMainStage(void)
 		resMng_.LoadModelDuplicate(ResourceManager::SRC::MAIN_PLANET));
 	planetTrans.scl = AsoUtility::VECTOR_ONE;
 	planetTrans.quaRot = Quaternion();
-	planetTrans.pos = { 0.0f, -MAIN_PLANET_POS_Y, 0.0f };
+	planetTrans.pos = { INITIAL_VALUE, -MAIN_PLANET_POS_Y, INITIAL_VALUE };
 
 	// ìñÇΩÇËîªíË(ÉRÉâÉCÉ_)çÏê¨
 	planetTrans.MakeCollider(Collider::TYPE::STAGE);
@@ -157,7 +157,7 @@ void Stage::MakeWarpStar(void)
 	trans.quaRot = Quaternion::Euler(
 		AsoUtility::Deg2RadF(WARP_STAR_ROT_X),
 		AsoUtility::Deg2RadF(WARP_STAR_ROT_Y),
-		AsoUtility::Deg2RadF(0.0f)
+		AsoUtility::Deg2RadF(INITIAL_VALUE)
 	);
 
 	star = std::make_unique<WarpStar>(player_, trans);

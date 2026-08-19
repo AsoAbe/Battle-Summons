@@ -8,6 +8,8 @@ class SkyDome : public ActorBase
 {
 
 public:
+	// 初期値
+	static constexpr float INITIAL_VALUE = 0.0f;
 
 	// スケール
 	static constexpr float SCALE = 100.0f;

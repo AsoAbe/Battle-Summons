@@ -14,9 +14,9 @@ Planet::Planet(const Stage::NAME& name, const TYPE& type, const Transform& trans
 	type_ = type;
 	transform_ = transform;
 
-	gravityPow_ = 0.0f;
-	gravityRadius_ = 0.0f;
-	deadLength_ = 0.0f;
+	gravityPow_ = INITIAL_VALUE;
+	gravityRadius_ = INITIAL_VALUE;
+	deadLength_ = INITIAL_VALUE;
 
 }
 

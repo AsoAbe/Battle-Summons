@@ -16,6 +16,13 @@ class EnemyGolem;
 class Player : public CharacterBase, public std::enable_shared_from_this<Player>
 {
 public:
+	// 初期値
+	static constexpr float INITIAL_FLOAT = 0.0f;
+	static constexpr int INITIAL_INT = 0;
+
+	// 無効なハンドル
+	static constexpr int INVALID_HANDLE = -1;
+
 	//初期座標
 	static constexpr float START_POS_Y = 30.0f;
 
@@ -84,14 +91,15 @@ public:
 	static constexpr float HEAL_EFFECT_SCALE = 10.0f;	  //回復エフェクトサイズ
 
 	//影描画----------------------------------------
-	static constexpr float SHADOW_HEIGHT = 300.0f;		// 影を落とす高さ
-	static constexpr float SHADOW_SIZE = 30.0f;			// 影サイズ
-	static constexpr float SHADOW_SLIDE_LENGTH = 0.5f;  // ポリゴンから浮かせる量(Z-fighting防止)
-	static constexpr float SHADOW_ALPHA_MAX = 128.0f;   // 影の最大透明度
-	static constexpr float SHADOW_DIAMETER_SCALE = 2.0f;//半径→直径変換
-	static constexpr float SHADOW_UV_CENTER = 0.5f;		// UV中心補正
-	static constexpr int SHADOW_VERTEX_NUM = 3; //影ポリゴン頂点数
-	
+	static constexpr float SHADOW_HEIGHT = 300.0f;		 // 影を落とす高さ
+	static constexpr float SHADOW_SIZE = 30.0f;			 // 影サイズ
+	static constexpr float SHADOW_SLIDE_LENGTH = 0.5f;   // ポリゴンから浮かせる量(Z-fighting防止)
+	static constexpr float SHADOW_ALPHA_MAX = 128.0f;    // 影の最大透明度
+	static constexpr float SHADOW_DIAMETER_SCALE = 2.0f; //半径→直径変換
+	static constexpr float SHADOW_UV_CENTER = 0.5f;		 // UV中心補正
+	static constexpr int SHADOW_VERTEX_NUM = 3;			 //影ポリゴン頂点数
+	static constexpr float SHADOW_ALPHA_RATE_BASE = 1.0f;// 影の透明度を計算するための基準値
+
 	//アニメ共通---------------------------
 	static constexpr float ANIM_START_FRAME = 0.0f; //開始フレーム
 	static constexpr float ANIM_END_FRAME_AUTO = -1.0f; //最後まで再生
@@ -114,6 +122,7 @@ public:
 	static constexpr float GOLD_SHOT_ANGLE_H = DX_PI_F / 18.0f; //Gold横拡散角
 	static constexpr float GOLD_SHOT_ANGLE_V = DX_PI_F / 36.0f; //Gold縦拡散角
 	static constexpr float SHOT_CENTER_OFFSET = 2.0f;			//中央基準補正
+	static constexpr int SHOT_CENTER_ADJUST = 1;				// 中央位置を基準にするための弾数補正値
 
 	//キー入力---------------------------
 	static constexpr int KEY_MOVE_FRONT = KEY_INPUT_W; //前

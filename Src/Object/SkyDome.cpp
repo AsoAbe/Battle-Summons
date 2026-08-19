@@ -30,9 +30,9 @@ void SkyDome::Init(void)
 	transform_.scl = SCALES;
 	transform_.pos = AsoUtility::VECTOR_ZERO;
 	transform_.quaRot = Quaternion::Euler(
-		0.0f, 
+		INITIAL_VALUE, 
 		AsoUtility::Deg2RadF(DEG_ROT_Y),
-		0.0f
+		INITIAL_VALUE
 	);
 	transform_.quaRotLocal = Quaternion();
 	transform_.Update();
