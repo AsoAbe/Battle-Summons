@@ -5,6 +5,14 @@ class Application
 {
 
 public:
+	// 初期値
+	static constexpr float INITIAL_VALUE = 0.0f;
+
+	// 無効なハンドル
+	static constexpr int INVALID_HANDLE = -1;
+
+	//インスタンスが未生成であることを示す値
+	static constexpr int INSTANCE_NULL = 0;
 
 	// スクリーンサイズ
 	static constexpr int SCREEN_SIZE_X = 1024;
@@ -21,6 +29,12 @@ public:
 
 	//1フレーム当たりの秒数
 	static constexpr float FRAME_RATE = (1000.0f / FPS);
+
+	// 画面の色深度（ビット数）
+	static constexpr int SCREEN_COLOR_BIT = 32;
+
+	// Effekseerの最大描画パーティクル数
+	static constexpr int EFFEKSEER_MAX_PARTICLES = 8000;
 
 	// データパス関連
 	//-------------------------------------------

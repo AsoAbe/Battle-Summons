@@ -12,62 +12,19 @@
 #include "../UI/BGM.h"
 #include "TitleScene.h"
 
-namespace {
-	constexpr int appear_interval = 20;  // 出現までのフレーム
-	constexpr int menu_line_height = 40; // メニューの1つあたりの高さ
-	constexpr int margin_size = 20;      // ポーズメニュー枠の余白
-
-	constexpr int CONTROL_TEXT_SIZE = 18;
-
-	//SoundManager側をそのまま使うと計算が合わなくなるため、後で数値を書き換えてこの定数は不要にする
-	constexpr int VOLUME_BGM_TITLE = static_cast<int>(SoundManager::VOLUME_BGM * 1.17f);
-	constexpr int VOLUME_BGM_MAIN = 255 * 75 / 100;
-
-	constexpr int TITLE_MODEL_ROT_X = -90;
-
-	// キャラクター配置位置
-	constexpr float CHARACTER_POS_X = -250.0f;
-	constexpr float CHARACTER_POS_Y = -32.0f;
-	constexpr float CHARACTER_POS_Z = -105.0f;
-
-	// キャラクター表示倍率
-	constexpr float CHARACTER_SCALE = 0.4f;
-
-	// キャラクター初期向き(Y軸回転角度)
-	constexpr float CHARACTER_ROT_Y = 90.0f;
-
-	// 走るアニメーション
-	constexpr float RUN_ANIM_SPEED = 20.0f;
-
-	// PUSH SPACE 点滅設定
-	constexpr float PUSH_ALPHA_MAX = 255.0f;
-	constexpr float PUSH_ALPHA_MIN = 50.0f;
-	constexpr float PUSH_ALPHA_SPEED = 2.0f;
-	constexpr float PUSH_ALPHA_DIR_PLUS = 1.0f;
-	constexpr float PUSH_ALPHA_DIR_MINUS = -1.0f;
-
-	// タイトル画像描画位置
-	constexpr int TITLE_DRAW_Y = 350;
-	constexpr double TITLE_DRAW_SCALE = 0.7;
-
-	// PUSH SPACE画像描画位置
-	constexpr int PUSH_DRAW_Y = 500;
-	constexpr double PUSH_DRAW_SCALE = 1.0;
-}
-
 TitleScene::TitleScene(void)
 {
-	imgPush_ = -1;
-	imgTitle_ = -1;
+	imgPush_ = INVALID_HANDLE;
+	imgTitle_ = INVALID_HANDLE;
 	skyDome_ = nullptr;
 	animationController_ = nullptr;
 
-	bgmplay_ = 0;
-	bgmcount_ = 0;
-	bgmtamesi_ = 0;
+	bgmplay_ = INITIAL_COUNT;
+	bgmcount_ = INITIAL_COUNT;
+	bgmtamesi_ = INITIAL_COUNT;
 
-	pushAlpha_ = 0.0f;
-	pushAlphaDir_ = 0.0f;
+	pushAlpha_ = PUSH_ALPHA_INITIAL;
+	pushAlphaDir_ = PUSH_ALPHA_INITIAL;
 }
 
 TitleScene::~TitleScene(void)
@@ -87,7 +44,7 @@ void TitleScene::Init(void)
 	skyDome_ = std::make_unique<SkyDome>(spaceDomeTran_);
 	skyDome_->Init();
 
-	float size = 0.0f;
+	float size = INITIAL_VALUE;
 
 	// キャラ
 	charactor_.SetModel(resMng_.LoadModelDuplicate(ResourceManager::SRC::PLAYER));
@@ -95,14 +52,14 @@ void TitleScene::Init(void)
 	size = CHARACTER_SCALE;
 	charactor_.scl = { size, size, size };
 	charactor_.quaRot = Quaternion::Euler(
-		0.0f, AsoUtility::Deg2RadF(CHARACTER_ROT_Y), 0.0f);
+		INITIAL_VALUE, AsoUtility::Deg2RadF(CHARACTER_ROT_Y), INITIAL_VALUE);
 	charactor_.Update();
 
 	// アニメーションの設定
 	std::string path = Application::PATH_MODEL + "Player/";
 	animationController_ = std::make_unique<AnimationController>(charactor_.modelId);
-	animationController_->Add(0, path + "Run.mv1", RUN_ANIM_SPEED);
-	animationController_->Play(0);
+	animationController_->Add(RUN_ANIM_ID, path + "Run.mv1", RUN_ANIM_SPEED);
+	animationController_->Play(RUN_ANIM_ID);
 
 	// 定点カメラ
 	mainCamera.ChangeMode(Camera::MODE::FIXED_POINT);
@@ -167,24 +124,24 @@ void TitleScene::Draw(void)
 	MV1DrawModel(movePlanet_.modelId);
 	MV1DrawModel(charactor_.modelId);
 
-	DrawRotaGraph(Application::SCREEN_SIZE_X / 2,
+	DrawRotaGraph(Application::SCREEN_SIZE_X / SCREEN_CENTER_DIVISOR,
 		TITLE_DRAW_Y,
 		TITLE_DRAW_SCALE,
-		0.0,
+		DRAW_ROTATION_ZERO,
 		imgTitle_,
 		true
 	);
 	
 	SetDrawBlendMode(DX_BLENDMODE_ALPHA, (int)pushAlpha_);
 	DrawRotaGraph(
-		Application::SCREEN_SIZE_X / 2,
+		Application::SCREEN_SIZE_X / SCREEN_CENTER_DIVISOR,
 		PUSH_DRAW_Y,
 		PUSH_DRAW_SCALE,
-		0.0,
+		DRAW_ROTATION_ZERO,
 		imgPush_,
 		true
 	);
-	SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
+	SetDrawBlendMode(DX_BLENDMODE_NOBLEND, BLEND_ALPHA_MIN);
 }
 
 bool TitleScene::Release(void)

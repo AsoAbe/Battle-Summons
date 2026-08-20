@@ -8,6 +8,34 @@ class AsoUtility
 {
 
 public:
+	// 初期値
+	static constexpr float INITIAL_VALUE = 0.0f;
+
+	// 角度
+	static constexpr float HALF_DEGREE_F = 180.0f;
+	static constexpr double HALF_DEGREE_D = 180.0;
+	static constexpr double FULL_DEGREE_D = 360.0;
+	static constexpr float FULL_DEGREE_F = 360.0f;
+
+	// 色
+	static constexpr int COLOR_RED = 0xff0000;
+	static constexpr int COLOR_GREEN = 0x00ff00;
+	static constexpr int COLOR_BLUE = 0x0000ff;
+
+	// 描画線のデフォルト長さ
+	static constexpr float DRAW_LINE_DEFAULT_LENGTH = 50.0f;
+
+	// 描画球体
+	static constexpr float DRAW_SPHERE_RADIUS = 5.0f;
+	static constexpr int DRAW_SPHERE_SEGMENTS = 5;
+
+	// 補間範囲
+	static constexpr float LERP_MAX = 1.0f;
+	static constexpr double LERP_MAX_D = 1.0;
+
+	// 回転方向
+	static constexpr float ROTATE_CLOCKWISE = 1.0f;
+	static constexpr float ROTATE_COUNTERCLOCKWISE = -1.0f;
 
 	// ラジアン(rad)・度(deg)変換用
 	static constexpr float RAD2DEG = (180.0f / DX_PI_F);

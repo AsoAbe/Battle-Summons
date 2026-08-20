@@ -11,15 +11,22 @@ class GameOverScene : public SceneBase
 {
 public:
 
+
 	// クリア画像位置
 	static constexpr int CLEAR_X = -40;
 	static constexpr int CLEAR_Y = -90;
+
+	// 画面中央座標を求めるための分割数
+	static constexpr int SCREEN_CENTER_DIVISOR = 2;
 
 	// ゲームオーバー画像位置
 	static constexpr int OVER_Y = 350;
 
 	// ゲームオーバー画像倍率
 	static constexpr float OVER_SCALE = 2.8f;
+
+	// ゲームオーバー画像の回転角度
+	static constexpr double OVER_ROTATE = 0.0;
 
 	// テキスト位置
 	static constexpr int TEXT_X = 480;

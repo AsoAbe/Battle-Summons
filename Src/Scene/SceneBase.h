@@ -5,6 +5,12 @@ class SceneBase
 {
 
 public:
+	// 初期値
+	static constexpr float INITIAL_VALUE = 0.0f;
+
+	// 無効なリソースハンドル
+	static constexpr int INVALID_HANDLE = -1;
+	static constexpr int INITIAL_COUNT = 0;
 
 	// コンストラクタ
 	SceneBase(void);

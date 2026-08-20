@@ -36,13 +36,13 @@ void Application::Init(void)
 	SetWindowText("2316035_阿部郁哉");
 
 	// ウィンドウサイズ
-	SetGraphMode(SCREEN_SIZE_X, SCREEN_SIZE_Y, 32);
+	SetGraphMode(SCREEN_SIZE_X, SCREEN_SIZE_Y, SCREEN_COLOR_BIT);
 	ChangeWindowMode(true);
 
 	// DxLibの初期化
 	SetUseDirect3DVersion(DX_DIRECT3D_11);
 	isInitFail_ = false;
-	if (DxLib_Init() == -1)
+	if (DxLib_Init() == INVALID_HANDLE)
 	{
 		isInitFail_ = true;
 		return;
@@ -70,7 +70,7 @@ void Application::Run(void)
 	auto& sceneManager = SceneManager::GetInstance();
 
 	// ゲームループ
-	while (ProcessMessage() == 0 && CheckHitKey(KEY_INPUT_ESCAPE) == 0)
+	while (ProcessMessage() == INSTANCE_NULL && CheckHitKey(KEY_INPUT_ESCAPE) == INSTANCE_NULL)
 	{
 
 		inputManager.Update();
@@ -95,7 +95,7 @@ void Application::Destroy(void)
 	Effkseer_End();
 
 	// DxLib終了
-	if (DxLib_End() == -1)
+	if (DxLib_End() == INVALID_HANDLE)
 	{
 		isReleaseFail_ = true;
 	}
@@ -122,7 +122,7 @@ Application::Application(void)
 
 void Application::InitEffekseer(void)
 {
-	if (Effekseer_Init(8000) == -1)
+	if (Effekseer_Init(EFFEKSEER_MAX_PARTICLES) == INVALID_HANDLE)
 	{
 		DxLib_End();
 	}

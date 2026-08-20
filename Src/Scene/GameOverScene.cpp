@@ -15,8 +15,8 @@
 
 GameOverScene::GameOverScene(void)
 {
-	Clear = -1;
-	Over = -1;
+	Clear = INVALID_HANDLE;
+	Over = INVALID_HANDLE;
 }
 
 GameOverScene::~GameOverScene(void)
@@ -83,10 +83,10 @@ void GameOverScene::Draw(void)
     else
     {
         DrawRotaGraph(
-            Application::SCREEN_SIZE_X / 2,
+            Application::SCREEN_SIZE_X / SCREEN_CENTER_DIVISOR,
             OVER_Y,
             OVER_SCALE,
-            0.0f,
+            OVER_ROTATE,
             Over,
             true);
 

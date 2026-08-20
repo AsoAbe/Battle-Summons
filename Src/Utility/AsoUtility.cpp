@@ -28,40 +28,40 @@ std::vector<std::string> AsoUtility::Split(std::string& line, char delimiter)
 
 double AsoUtility::Rad2DegD(double rad)
 {
-    return rad * (180.0 / DX_PI);
+    return rad * (HALF_DEGREE_D / DX_PI);
 }
 
 float AsoUtility::Rad2DegF(float rad)
 {
-    return rad * (180.0f / DX_PI_F);
+    return rad * (HALF_DEGREE_F / DX_PI_F);
 }
 
 int AsoUtility::Rad2DegI(int rad)
 {
-    return rad * Round(180.0f / DX_PI_F);
+    return rad * Round(HALF_DEGREE_F / DX_PI_F);
 }
 
 double AsoUtility::Deg2RadD(double deg)
 {
-    return deg * (DX_PI / 180.0);
+    return deg * (DX_PI / HALF_DEGREE_D);
 }
 
 float AsoUtility::Deg2RadF(float deg)
 {
-    return deg * (DX_PI_F / 180.0f);
+    return deg * (DX_PI_F / HALF_DEGREE_F);
 }
 
 int AsoUtility::Deg2RadI(int deg)
 {
-    return deg * Round(DX_PI_F / 180.0f);
+    return deg * Round(DX_PI_F / HALF_DEGREE_F);
 }
 
 double AsoUtility::DegIn360(double deg)
 {
-    deg = fmod(deg, 360.0);
-    if (deg < 0.0f)
+    deg = fmod(deg, FULL_DEGREE_D);
+    if (deg < INITIAL_VALUE)
     {
-        deg += 360.0;
+        deg += FULL_DEGREE_D;
     }
     return deg;
 }
@@ -79,11 +79,11 @@ double AsoUtility::RadIn2PI(double rad)
 int AsoUtility::DirNearAroundRad(float from, float to)
 {
 
-    float ret = 1.0f;
+    float ret = LERP_MAX;
 
     float diff = to - from;
 
-    if (diff >= 0.0f)
+    if (diff >= INITIAL_VALUE)
     {
 
         // 比較元よりも時計回りに位置する
@@ -91,12 +91,12 @@ int AsoUtility::DirNearAroundRad(float from, float to)
         if (diff > DX_PI_F)
         {
             // でも、180度以上離れているので、反時計回りの方が近い
-            ret = -1.0f;
+            ret = -LERP_MAX;
         }
         else
         {
             // 時計回り
-            ret = 1.0f;
+            ret = LERP_MAX;
         }
 
     }
@@ -108,12 +108,12 @@ int AsoUtility::DirNearAroundRad(float from, float to)
         if (diff < -DX_PI_F)
         {
             // でも、180度以上離れているので、時計回りの方が近い
-            ret = 1.0f;
+            ret = LERP_MAX;
         }
         else
         {
             // 反時計回り
-            ret = -1.0f;
+            ret = -LERP_MAX;
         }
 
     }
@@ -125,24 +125,24 @@ int AsoUtility::DirNearAroundRad(float from, float to)
 int AsoUtility::DirNearAroundDeg(float from, float to)
 {
 
-    float ret = 1.0f;
+    float ret = LERP_MAX;
 
     float diff = to - from;
 
-    if (diff >= 0.0f)
+    if (diff >= INITIAL_VALUE)
     {
 
         // 比較元よりも時計回りに位置する
 
-        if (diff > 180.0f)
+        if (diff > HALF_DEGREE_F)
         {
             // でも、180度以上離れているので、反時計回りの方が近い
-            ret = -1.0f;
+            ret = -LERP_MAX;
         }
         else
         {
             // 時計回り
-            ret = 1.0f;
+            ret = LERP_MAX;
         }
 
     }
@@ -151,15 +151,15 @@ int AsoUtility::DirNearAroundDeg(float from, float to)
 
         // 比較元よりも反時計回りに位置する
 
-        if (diff < -180.0f)
+        if (diff < -HALF_DEGREE_F)
         {
             // でも、180度以上離れているので、時計回りの方が近い
-            ret = 1.0f;
+            ret = LERP_MAX;
         }
         else
         {
             // 反時計回り
-            ret = -1.0f;
+            ret = -LERP_MAX;
         }
 
     }
@@ -171,7 +171,7 @@ int AsoUtility::DirNearAroundDeg(float from, float to)
 int AsoUtility::Lerp(int start, int end, float t)
 {
     // 線形補間
-    if (t >= 1.0f)
+    if (t >= LERP_MAX)
     {
         return end;
     }
@@ -184,7 +184,7 @@ int AsoUtility::Lerp(int start, int end, float t)
 float AsoUtility::Lerp(float start, float end, float t)
 {
     // 線形補間
-    if (t >= 1.0f)
+    if (t >= LERP_MAX)
     {
         return end;
     }
@@ -210,7 +210,7 @@ double AsoUtility::Lerp(double start, double end, double t)
 Vector2 AsoUtility::Lerp(const Vector2& start, const Vector2& end, float t)
 {
     // 線形補間
-    if (t >= 1.0f)
+    if (t >= LERP_MAX)
     {
         return end;
     }
@@ -224,7 +224,7 @@ Vector2 AsoUtility::Lerp(const Vector2& start, const Vector2& end, float t)
 VECTOR AsoUtility::Lerp(const VECTOR& start, const VECTOR& end, float t)
 {
     // 線形補間
-    if (t >= 1.0f)
+    if (t >= LERP_MAX)
     {
         return end;
     }
@@ -243,22 +243,22 @@ double AsoUtility::LerpDeg(double start, double end, double t)
     double ret;
 
     double diff = end - start;
-    if (diff < -180.0)
+    if (diff < -HALF_DEGREE_D)
     {
-        end += 360.0;
+        end += FULL_DEGREE_D;
         ret = Lerp(start, end, t);
-        if (ret >= 360.0)
+        if (ret >= FULL_DEGREE_D)
         {
-            ret -= 360.0;
+            ret -= FULL_DEGREE_D;
         }
     }
-    else if (diff > 180.0)
+    else if (diff > HALF_DEGREE_D)
     {
-        end -= 360.0;
+        end -= FULL_DEGREE_D;
         ret = Lerp(start, end, t);
         if (ret < 0.0)
         {
-            ret += 360.0;
+            ret += FULL_DEGREE_D;
         }
     }
     else
@@ -273,7 +273,7 @@ double AsoUtility::LerpDeg(double start, double end, double t)
 COLOR_F AsoUtility::Lerp(const COLOR_F& start, const COLOR_F& end, float t)
 {
     // 線形補間
-    if (t >= 1.0f)
+    if (t >= LERP_MAX)
     {
         return end;
     }
@@ -402,17 +402,17 @@ bool AsoUtility::IsHitSphereCapsule(
     VECTOR centerPos;
 
     // 球体の位置が３エリアに分割されたカプセル形状のどこにいるか判別
-    if (rate > 0.0f && rate <= 1.0f)
+    if (rate > INITIAL_VALUE && rate <= LERP_MAX)
     {
         // ①球体がカプセル繋ぎ上にいる
         centerPos = VAdd(capPos1, VScale(cap1to2ENor, dot));
     }
-    else if (rate > 1.0f)
+    else if (rate > LERP_MAX)
     {
         // ②球体がカプセルの終点側にいる
         centerPos = capPos2;
     }
-    else if (rate < 0.0f)
+    else if (rate < INITIAL_VALUE)
     {
         // ③球体がカプセルの始点側にいる
         centerPos = capPos1;
@@ -460,7 +460,7 @@ VECTOR AsoUtility::Normalize(const Vector2& v)
     VECTOR ret = VGet(
         static_cast<float>(v.x),
         static_cast<float>(v.y),
-        0.0f
+        INITIAL_VALUE
     );
     float len = static_cast<float>(Magnitude(v));
     ret.x /= len;
@@ -488,22 +488,22 @@ double AsoUtility::AngleDeg(const VECTOR& from, const VECTOR& to)
     auto denominator = sqrt(fLen * tLen);
     if (denominator < kEpsilonNormalSqrt)
     {
-        return 0.0f;
+        return INITIAL_VALUE;
     }
 
-    //float dot = std::clamp(Dot(from, to) / denominator, -1.0f, 1.0f);
+    //float dot = std::clamp(Dot(from, to) / denominator, -LERP_MAX, LERP_MAX);
     //auto dot = Dot(from, to) / denominator;
     auto dot = VDot(from, to) / denominator;
-    if (dot < -1.0f)
+    if (dot < -LERP_MAX)
     {
-        dot = -1.0f;
+        dot = -LERP_MAX;
     }
-    if (dot > 1.0f)
+    if (dot > LERP_MAX)
     {
-        dot = 1.0f;
+        dot = LERP_MAX;
     }
 
-    return acos(dot) * (180.0 / DX_PI);
+    return acos(dot) * (HALF_DEGREE_D / DX_PI);
 }
 
 void AsoUtility::DrawLineDir(const VECTOR& pos, const VECTOR& dir, int color, float len)
@@ -512,7 +512,7 @@ void AsoUtility::DrawLineDir(const VECTOR& pos, const VECTOR& dir, int color, fl
     auto sPos = VAdd(pos, VScale(nDir, -len));
     auto ePos = VAdd(pos, VScale(nDir, len));
     DrawLine3D(sPos, ePos, color);
-    DrawSphere3D(ePos, 5.0f, 5, color, color, true);
+    DrawSphere3D(ePos, DRAW_SPHERE_RADIUS, DRAW_SPHERE_SEGMENTS, color, color, true);
 }
 
 void AsoUtility::DrawLineXYZ(const VECTOR& pos, const MATRIX& rot, float len)
@@ -522,15 +522,15 @@ void AsoUtility::DrawLineXYZ(const VECTOR& pos, const MATRIX& rot, float len)
 
     // X
     dir = VTransform(AsoUtility::DIR_R, rot);
-    DrawLineDir(pos, dir, 0xff0000, len);
+    DrawLineDir(pos, dir, COLOR_RED, len);
 
     // Y
     dir = VTransform(AsoUtility::DIR_U, rot);
-    DrawLineDir(pos, dir, 0x00ff00, len);
+    DrawLineDir(pos, dir, COLOR_GREEN, len);
 
     // Z
     dir = VTransform(AsoUtility::DIR_F, rot);
-    DrawLineDir(pos, dir, 0x0000ff, len);
+    DrawLineDir(pos, dir, COLOR_BLUE, len);
 
 }
 
@@ -541,15 +541,15 @@ void AsoUtility::DrawLineXYZ(const VECTOR& pos, const Quaternion& rot, float len
 
     // X
     dir = rot.GetRight();
-    DrawLineDir(pos, dir, 0xff0000, len);
+    DrawLineDir(pos, dir, COLOR_RED, len);
 
     // Y
     dir = rot.GetUp();
-    DrawLineDir(pos, dir, 0x00ff00, len);
+    DrawLineDir(pos, dir, COLOR_GREEN, len);
 
     // Z
     dir = rot.GetForward();
-    DrawLineDir(pos, dir, 0x0000ff, len);
+    DrawLineDir(pos, dir, COLOR_BLUE, len);
 
 }
 
