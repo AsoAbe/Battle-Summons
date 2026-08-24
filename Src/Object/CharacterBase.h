@@ -103,4 +103,6 @@ protected:
     float stepJump_ = 0.0f;
 
     bool isGround_;      // Ú’n”»’è
+
+    int debugHitNum_ = 0;
 };

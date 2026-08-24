@@ -42,8 +42,15 @@ Stage::~Stage(void)
 
 void Stage::Init(void)
 {
+	//メインステージ生成
 	MakeMainStage();
+	//ステージに浮かぶ星を生成
 	MakeWarpStar();
+
+	//石壁生成
+	StoneWall();
+	//透明な壁生成
+	WhiteWall();
 
 	step_ = -STEP_INACTIVE;
 }
@@ -73,6 +80,8 @@ void Stage::Draw(void)
 		s.second->Draw();
 	}
 
+	// 石壁
+	MV1DrawModel(walltransform_.modelId);
 }
 
 void Stage::DrawTranslucent(void)
@@ -125,7 +134,7 @@ void Stage::MakeMainStage(void)
 	//------------------------------------------------------------------------------
 	Transform planetTrans;
 	planetTrans.SetModel(
-		resMng_.LoadModelDuplicate(ResourceManager::SRC::MAIN_PLANET));
+		resMng_.LoadModelDuplicate(ResourceManager::SRC::MAIN_PLANET2));
 	planetTrans.scl = AsoUtility::VECTOR_ONE;
 	planetTrans.quaRot = Quaternion();
 	planetTrans.pos = { INITIAL_VALUE, -MAIN_PLANET_POS_Y, INITIAL_VALUE };
@@ -164,5 +173,46 @@ void Stage::MakeWarpStar(void)
 	star->Init();
 	warpStars_.push_back(std::move(star));
 	//------------------------------------------------------------------------------
+
+}
+
+
+//石壁
+void Stage::StoneWall(void)
+{
+	walltransform_.SetModel(
+		resMng_.LoadModelDuplicate(
+			ResourceManager::SRC::STONE_WALL));
+
+	walltransform_.scl = AsoUtility::VECTOR_ONE;
+	walltransform_.quaRot = Quaternion();
+	walltransform_.pos = { 0.0f, -100.0f, 0.0f };
+
+	// 当たり判定(コライダ)作成
+	walltransform_.Update();
+
+	//auto* player = objectManager_->GetPlayer();
+
+}
+
+//透明な壁
+void Stage::WhiteWall(void)
+{
+
+	whitewall_.SetModel(
+		resMng_.LoadModelDuplicate(
+			ResourceManager::SRC::WHITE_WALL));
+
+	whitewall_.scl = AsoUtility::VECTOR_ONE;
+	whitewall_.quaRot = Quaternion();
+	whitewall_.pos = { 0.0f, -100.0f, 0.0f };
+
+	// 当たり判定(コライダ)作成
+	whitewall_.MakeCollider(Collider::TYPE::WALL);
+
+	whitewall_.Update();
+
+	//auto* player = objectManager_->GetPlayer();
+	player_->AddCollider(whitewall_.collider);
 
 }

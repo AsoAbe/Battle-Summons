@@ -196,6 +196,25 @@ void Player::Draw(void)
 		shot->Draw();
 	}
 	DrawEffekseer3D();
+	int y = 100;
+
+	for (const auto& weakCollider : colliders_)
+	{
+		auto collider = weakCollider.lock();
+
+		if (collider == nullptr)
+		{
+			continue;
+		}
+
+		DrawFormatString(
+			0, y, 0xffffff,
+			"ModelID = %d Type = %d",
+			collider->modelId_,
+			static_cast<int>(collider->type_));
+
+		y += 20;
+	}
 }
 
 bool Player::Release()
@@ -558,23 +577,6 @@ void Player::ProcessMove(void)
 		}
 	}
 
-	//デバッグ用-------------------------
-	//if (ins.IsNew(KEY_HEAL))
-	//{	
-	//	Hp_ += 1;
-	//	if (Hp_ >= MaxHp_)
-	//	{
-	//		Hp_ = MaxHp_;
-	//	}
-	//
-	//}
-	//if (ins.IsNew(KEY_DAMAGE))
-	//{
-	//	if(Hp_ > 0)
-	//	{
-	//		Hp_ -= 1;
-	//	}
-	//}
 }
 
 void Player::ProcessJump(void)

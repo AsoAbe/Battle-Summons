@@ -110,6 +110,11 @@ private:
 	// ワープスター
 	void MakeWarpStar(void);
 
+	//石壁
+	void StoneWall(void);
+	//透明な壁
+	void WhiteWall(void);
+
 	Transform walltransform_;
 	Transform whitewall_;
 

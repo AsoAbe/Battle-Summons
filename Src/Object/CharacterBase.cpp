@@ -6,7 +6,6 @@
 #include "Planet.h"
 #include "CharacterBase.h"
 
-//ŽÀ‘•‚µ‚Ä‚¢‚È‚¢•Ï”‚ª‚ ‚é
 
 CharacterBase::CharacterBase()
     : resMng_(ResourceManager::GetInstance())
@@ -139,6 +138,8 @@ void CharacterBase::CollisionCapsule(void)
 			collider->modelId_, INVALID_HANDLE,
 			cap.GetPosTop(), cap.GetPosDown(), cap.GetRadius());
 
+		debugHitNum_ = hits.HitNum;
+
 		for (int i = 0; i < hits.HitNum; i++)
 		{
 
@@ -212,6 +213,7 @@ float CharacterBase::GetRadius(void) const
 void CharacterBase::AddCollider(std::weak_ptr<Collider> collider)
 {
     colliders_.push_back(collider);
+
 }
 
 void CharacterBase::ClearCollider(void)

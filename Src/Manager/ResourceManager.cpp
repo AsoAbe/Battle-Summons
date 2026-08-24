@@ -65,7 +65,13 @@ void ResourceManager::Init(void)
 	resourcesMap_.emplace(SRC::MAIN_PLANET, std::move(res));
 	res = std::make_unique<RES>(RES_T::MODEL, PATH_MDL + "Stage/Stage.mv1");
 	resourcesMap_.emplace(SRC::MAIN_PLANET2, std::move(res));
-
+	
+	//石壁
+	res = std::make_unique<RES>(RES_T::MODEL, PATH_MDL + "Stage/Wall2.mv1");
+	resourcesMap_.emplace(SRC::STONE_WALL, std::move(res));
+	//透明な壁
+	res = std::make_unique<RES>(RES_T::MODEL, PATH_MDL + "Stage/Wall4.mv1");
+	resourcesMap_.emplace(SRC::WHITE_WALL, std::move(res));
 
 	// ワープスターモデル
 	res = std::make_unique<RES>(RES_T::MODEL, PATH_MDL + "Star/star.mv1");
