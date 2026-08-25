@@ -51,7 +51,7 @@ void GameScene::Init(void)
 
 	// ステージ
 	stage_ = std::make_shared<Stage>(player_,enemy_);
-	stage_->Init();
+	stage_->Init(Stage::NAME::MAIN_PLANET);
 	SceneManager::GetInstance().SetStage(stage_);
 	// ステージの初期設定
 	stage_->ChangeStage(Stage::NAME::MAIN_PLANET);

@@ -41,6 +41,7 @@ public:
 	enum class NAME
 	{
 		MAIN_PLANET,
+		MAIN_PLANET2,
 		FALL_PLANET,
 		FLAT_PLANET_BASE,
 		FLAT_PLANET_ROT01,
@@ -63,7 +64,7 @@ public:
 	// デストラクタ
 	~Stage(void);
 
-	void Init(void);
+	void Init(NAME type);
 	void Update(void);
 
 	//不透明
@@ -104,8 +105,11 @@ private:
 
 	float step_;
 
-	// 最初の惑星
+	// 一つ目の惑星
 	void MakeMainStage(void);
+	
+	// ニつ目の惑星
+	void MakeMainStage2(void);
 
 	// ワープスター
 	void MakeWarpStar(void);

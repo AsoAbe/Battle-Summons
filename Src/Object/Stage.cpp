@@ -40,17 +40,23 @@ Stage::~Stage(void)
 
 }
 
-void Stage::Init(void)
+void Stage::Init(NAME type)
 {
-	//メインステージ生成
-	MakeMainStage();
-	//ステージに浮かぶ星を生成
-	MakeWarpStar();
+	activeName_ = type;
 
-	//石壁生成
-	StoneWall();
-	//透明な壁生成
-	WhiteWall();
+	//メインステージ生成
+	switch (type)
+	{
+	case NAME::MAIN_PLANET:
+		MakeMainStage();
+		//ステージに浮かぶ星を生成
+		MakeWarpStar();
+		break;
+
+	case NAME::MAIN_PLANET2:
+		MakeMainStage2();
+		break;
+	}
 
 	step_ = -STEP_INACTIVE;
 }
@@ -108,6 +114,15 @@ void Stage::ChangeStage(NAME type)
 	enemy_->ClearCollider();
 	enemy_->AddCollider(activePlanet_.lock()->GetTransform().collider);
 
+	if (type == NAME::MAIN_PLANET2)
+	{
+		player_->AddCollider(whitewall_.collider);
+		player_->AddCollider(walltransform_.collider);
+		
+		enemy_->AddCollider(whitewall_.collider);
+		enemy_->AddCollider(walltransform_.collider);
+	}
+
 	step_ = TIME_STAGE_CHANGE;
 
 }
@@ -130,11 +145,11 @@ std::weak_ptr<Planet> Stage::GetActivePlanet() const
 void Stage::MakeMainStage(void)
 {
 
-	// 最初の惑星
+	// 一つ目のステージ
 	//------------------------------------------------------------------------------
 	Transform planetTrans;
 	planetTrans.SetModel(
-		resMng_.LoadModelDuplicate(ResourceManager::SRC::MAIN_PLANET2));
+		resMng_.LoadModelDuplicate(ResourceManager::SRC::MAIN_PLANET));
 	planetTrans.scl = AsoUtility::VECTOR_ONE;
 	planetTrans.quaRot = Quaternion();
 	planetTrans.pos = { INITIAL_VALUE, -MAIN_PLANET_POS_Y, INITIAL_VALUE };
@@ -151,6 +166,37 @@ void Stage::MakeMainStage(void)
 	planet->Init();
 	planets_.emplace(name, std::move(planet));
 
+}
+
+void Stage::MakeMainStage2(void)
+{
+
+	// 二つ目のステージ
+	//------------------------------------------------------------------------------
+	Transform planetTrans;
+	planetTrans.SetModel(
+		resMng_.LoadModelDuplicate(ResourceManager::SRC::MAIN_PLANET2));
+	planetTrans.scl = AsoUtility::VECTOR_ONE;
+	planetTrans.quaRot = Quaternion();
+	planetTrans.pos = { INITIAL_VALUE, -MAIN_PLANET_POS_Y, INITIAL_VALUE };
+
+	// 当たり判定(コライダ)作成
+	planetTrans.MakeCollider(Collider::TYPE::STAGE);
+
+	planetTrans.Update();
+
+	NAME name = NAME::MAIN_PLANET2;
+	std::shared_ptr<Planet> planet =
+		std::make_shared<Planet>(
+			name, Planet::TYPE::GROUND, planetTrans);
+	planet->Init();
+	planets_.emplace(name, std::move(planet));
+
+	//石壁生成
+	StoneWall();
+
+	//透明な壁生成
+	WhiteWall();
 }
 
 void Stage::MakeWarpStar(void)
@@ -191,7 +237,7 @@ void Stage::StoneWall(void)
 	// 当たり判定(コライダ)作成
 	walltransform_.Update();
 
-	//auto* player = objectManager_->GetPlayer();
+	walltransform_.MakeCollider(Collider::TYPE::WALL);
 
 }
 
@@ -212,7 +258,6 @@ void Stage::WhiteWall(void)
 
 	whitewall_.Update();
 
-	//auto* player = objectManager_->GetPlayer();
 	player_->AddCollider(whitewall_.collider);
 
 }

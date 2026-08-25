@@ -155,7 +155,6 @@ void CharacterBase::CollisionCapsule(void)
 				if (pHit)
 				{
 					OnCapsuleHit(hit, cap);
-					//movedPos_ = VAdd(movedPos_, VScale(hit.Normal, 1.0f));
 					
 					// ƒJƒvƒZƒ‹‚ðˆÚ“®‚³‚¹‚é
 					trans.pos = movedPos_;

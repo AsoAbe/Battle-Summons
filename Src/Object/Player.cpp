@@ -189,14 +189,10 @@ void Player::Draw(void)
 	//ŠÛ‰e•`‰æ
 	DrawShadow();
 
-#ifdef _DEBUG
-	//capsule_->Draw();
-#endif
 	for (auto& shot : shots_) {
 		shot->Draw();
 	}
 	DrawEffekseer3D();
-	int y = 100;
 
 	for (const auto& weakCollider : colliders_)
 	{
@@ -206,14 +202,6 @@ void Player::Draw(void)
 		{
 			continue;
 		}
-
-		DrawFormatString(
-			0, y, 0xffffff,
-			"ModelID = %d Type = %d",
-			collider->modelId_,
-			static_cast<int>(collider->type_));
-
-		y += 20;
 	}
 }
 
